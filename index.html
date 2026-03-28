@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="nl" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,8 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
+/* ══ TOKENS ══ */
 :root {
   --bg: #f2f1ed;
+  --bg2: #eae8e3;
   --card: #ffffff;
   --border: #dedad2;
   --accent: #1a1a2e;
@@ -20,10 +22,38 @@
   --ez: #1565c0;
   --us: #b8963e;
   --cn: #c62828;
+  --success: #2e7d32;
+  --error: #c62828;
+  --transition: .18s cubic-bezier(.4,0,.2,1);
 }
+[data-theme="dark"] {
+  --bg: #111118;
+  --bg2: #1a1a26;
+  --card: #1e1e2d;
+  --border: #2e2e42;
+  --accent: #e8e6f0;
+  --gold: #d4a84b;
+  --muted: #6b6b85;
+}
+[data-theme="dark"] .sidebar { background: #0d0d18; }
+[data-theme="dark"] .mobile-header { background: #0d0d18; }
+[data-theme="dark"] .ctx-card { background: #0d0d18; }
+[data-theme="dark"] .meta-pill { background: #0d0d18; }
+[data-theme="dark"] .range-select { background: #0d0d18; }
+[data-theme="dark"] .chart-overlay { background: rgba(17,17,24,.85); }
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
-body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--accent); }
+body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--accent); transition: background var(--transition), color var(--transition); }
+
+/* ── SKELETON ── */
+.skeleton {
+  background: linear-gradient(90deg, var(--border) 25%, var(--bg2) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 3px;
+}
+@keyframes shimmer { from { background-position: 200% 0 } to { background-position: -200% 0 } }
 
 /* ── SHELL ── */
 .shell { display: flex; min-height: 100vh; }
@@ -37,11 +67,13 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
   display: flex; flex-direction: column;
   transition: transform .3s cubic-bezier(.4,0,.2,1);
 }
+[data-theme="dark"] .sidebar { color: var(--bg); }
 .sidebar-logo {
   font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
   color: #fff; padding: 24px 20px 20px;
   border-bottom: 1px solid rgba(255,255,255,.08); flex-shrink: 0;
 }
+[data-theme="dark"] .sidebar-logo { color: var(--bg); }
 .sidebar-logo span { color: var(--gold); }
 .nav-section { padding: 12px 0 4px; }
 .nav-group-label {
@@ -51,28 +83,29 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
 .nav-item {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 20px; font-size: 13px; color: rgba(255,255,255,.6);
-  cursor: pointer; border-left: 2px solid transparent; transition: all .15s;
+  cursor: pointer; border-left: 2px solid transparent; transition: all var(--transition);
+  user-select: none;
 }
 .nav-item:hover { color: #fff; background: rgba(255,255,255,.06); }
 .nav-item.active { color: #fff; border-left-color: var(--gold); background: rgba(255,255,255,.08); }
 .nav-item .nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
 
-/* Region toggles in sidebar */
+/* Region toggles */
 .region-wrap { padding: 12px 20px 16px; border-top: 1px solid rgba(255,255,255,.08); }
 .region-wrap-label { font-size: 9px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.3); margin-bottom: 10px; }
 .region-btns { display: flex; flex-direction: column; gap: 5px; }
 .region-btn {
   display: flex; align-items: center; gap: 8px;
   padding: 7px 10px; border-radius: 2px; cursor: pointer;
-  font-size: 12px; font-weight: 500; transition: all .15s;
+  font-size: 12px; font-weight: 500; transition: all var(--transition);
   background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
-  color: rgba(255,255,255,.7);
+  color: rgba(255,255,255,.7); user-select: none;
 }
 .region-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
 .region-btn.inactive { opacity: .35; }
 .region-btn .rb-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-/* Data cadence footer in sidebar */
+/* Sidebar footer */
 .sidebar-footer {
   margin-top: auto;
   padding: 14px 20px;
@@ -102,12 +135,14 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
   display: flex; align-items: flex-start; justify-content: space-between;
   border-bottom: 2px solid var(--accent); padding-bottom: 16px; margin-bottom: 28px;
   flex-wrap: wrap; gap: 12px;
+  transition: border-color var(--transition);
 }
 .page-header h1 { font-size: 18px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .meta-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .meta-pill {
   font-family: 'IBM Plex Mono', monospace; font-size: 11px;
   background: var(--accent); color: rgba(255,255,255,.7); padding: 4px 10px; border-radius: 2px;
+  transition: background var(--transition);
 }
 .meta-pill b { color: var(--gold); font-weight: 600; }
 
@@ -121,34 +156,55 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
   color: #fff; border-radius: 2px;
   padding: 8px 12px; font-size: 11px;
   font-family: 'IBM Plex Mono', monospace;
-  cursor: pointer; outline: none;
+  cursor: pointer; outline: none; transition: background var(--transition);
 }
 .range-select option { background: #1a1a2e; }
-.refresh-btn {
+.ctrl-btn {
   display: inline-flex; align-items: center; gap: 8px;
   background: transparent; border: 1.5px solid var(--border);
   color: var(--accent); padding: 7px 14px;
   font-family: 'IBM Plex Sans', sans-serif;
   font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-  cursor: pointer; border-radius: 2px; transition: all .15s;
+  cursor: pointer; border-radius: 2px; transition: all var(--transition);
 }
-.refresh-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-.refresh-btn.loading { opacity: .6; pointer-events: none; }
-.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #2e7d32; animation: pulse 2s infinite; }
+.ctrl-btn:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.ctrl-btn:disabled, .ctrl-btn.loading { opacity: .6; pointer-events: none; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+.status-dot.error { background: var(--error); animation: none; }
+
+/* Theme toggle */
+.theme-toggle {
+  margin-left: auto;
+  background: transparent; border: 1.5px solid var(--border);
+  color: var(--accent); padding: 7px 12px;
+  font-size: 14px; cursor: pointer; border-radius: 2px;
+  transition: all var(--transition);
+}
+.theme-toggle:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 
 /* ── KPI STRIP ── */
 .ctx-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 8px; margin-bottom: 28px; }
-.ctx-card { background: var(--accent); padding: 12px 14px; border-radius: 3px; }
+.ctx-card {
+  background: var(--accent); padding: 12px 14px; border-radius: 3px;
+  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+  cursor: default;
+}
+.ctx-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.15); }
 .ctx-card-label { font-size: 9px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 4px; }
-.ctx-card-value { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; color: #fff; }
+.ctx-card-value { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; color: #fff; min-height: 24px; }
+.ctx-card-value.skeleton-kpi { height: 24px; width: 80%; }
 .ctx-card-sub { font-size: 9px; color: rgba(255,255,255,.3); font-family: 'IBM Plex Mono', monospace; margin-top: 2px; }
 .ctx-card-value.gold { color: var(--gold); }
+.ctx-card-delta { font-size: 9px; font-family: 'IBM Plex Mono', monospace; margin-top: 3px; }
+.ctx-card-delta.up { color: #66bb6a; }
+.ctx-card-delta.down { color: #ef9a9a; }
 
 /* ── SECTION TITLE ── */
 .section-title {
   font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
   color: var(--muted); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
 }
 .section-divider { height: 1px; background: var(--border); margin: 32px 0 24px; }
 
@@ -159,9 +215,9 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
   border: 1px solid var(--border);
   border-top: 3px solid var(--accent);
   border-radius: 3px;
-  transition: box-shadow .2s;
+  transition: box-shadow var(--transition), border-color var(--transition), background var(--transition);
 }
-.chart-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.08); }
+.chart-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.1); }
 .chart-card.full-width { grid-column: 1 / -1; }
 
 .chart-card-header {
@@ -174,6 +230,14 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
 }
 .chart-card-subtitle { font-size: 12px; font-weight: 600; color: var(--accent); }
 
+.chart-card-actions { display: flex; gap: 6px; align-items: center; }
+.chart-action-btn {
+  background: transparent; border: none; cursor: pointer;
+  font-size: 12px; color: var(--muted); padding: 3px 6px; border-radius: 2px;
+  transition: all var(--transition);
+}
+.chart-action-btn:hover { background: var(--bg2); color: var(--accent); }
+
 .chart-freq {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
@@ -181,7 +245,7 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
 }
 .chart-freq.yearly  { background: rgba(26,26,46,.08); color: var(--accent); }
 .chart-freq.quarterly { background: rgba(184,150,62,.12); color: var(--gold); }
-.chart-freq.live    { background: rgba(46,125,50,.12); color: #2e7d32; }
+.chart-freq.live    { background: rgba(46,125,50,.12); color: var(--success); }
 
 .chart-body { padding: 14px 16px 16px; }
 .chart-canvas-wrap { position: relative; height: 200px; }
@@ -194,6 +258,7 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
   align-items: center; justify-content: center;
   background: rgba(242,241,237,.85);
   border-radius: 2px; gap: 8px; z-index: 5;
+  transition: background var(--transition);
 }
 .spinner {
   width: 22px; height: 22px;
@@ -204,18 +269,66 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .overlay-text { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--muted); }
+.overlay-retry {
+  font-size: 10px; font-family: 'IBM Plex Mono', monospace;
+  background: none; border: 1px solid var(--error); color: var(--error);
+  padding: 4px 10px; border-radius: 2px; cursor: pointer; margin-top: 4px;
+  transition: all var(--transition);
+}
+.overlay-retry:hover { background: var(--error); color: #fff; }
 
 /* Legend */
 .chart-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
 .legend-item {
   display: flex; align-items: center; gap: 5px;
   font-size: 11px; font-family: 'IBM Plex Mono', monospace;
-  color: var(--muted); cursor: pointer; transition: opacity .15s;
+  color: var(--muted); cursor: pointer; transition: opacity var(--transition), color var(--transition);
+  user-select: none;
 }
 .legend-item:hover { color: var(--accent); }
 .legend-item.hidden { opacity: .3; text-decoration: line-through; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .last-updated { font-size: 9px; font-family: 'IBM Plex Mono', monospace; color: var(--border); margin-top: 6px; text-align: right; }
+
+/* ── COMPARISON TABLE ── */
+.table-wrap { overflow-x: auto; margin-top: 0; }
+.comparison-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 12px; font-family: 'IBM Plex Mono', monospace;
+}
+.comparison-table th {
+  text-align: left; padding: 8px 12px;
+  font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.comparison-table td {
+  padding: 9px 12px; border-bottom: 1px solid var(--border);
+  color: var(--accent); white-space: nowrap;
+  transition: background var(--transition);
+}
+.comparison-table tr:hover td { background: var(--bg2); }
+.comparison-table td:first-child { font-weight: 600; }
+.tbl-flag { margin-right: 6px; }
+.tbl-val { font-weight: 600; }
+.tbl-val.positive { color: var(--success); }
+.tbl-val.negative { color: var(--error); }
+.tbl-val.neutral { color: var(--gold); }
+
+/* ── TOAST NOTIFICATIONS ── */
+.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  background: var(--accent); color: var(--bg);
+  padding: 10px 16px; border-radius: 3px;
+  font-size: 12px; font-family: 'IBM Plex Mono', monospace;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.2);
+  animation: slideIn .2s ease forwards;
+}
+.toast.success .toast-icon { color: #66bb6a; }
+.toast.error .toast-icon { color: #ef9a9a; }
+@keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideOut { to { transform: translateX(120%); opacity: 0; } }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
@@ -228,60 +341,67 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
   .main { margin-left: 0; padding: 68px 16px 40px; }
   .ctx-strip { grid-template-columns: repeat(2,1fr); }
   .page-header { flex-direction: column; }
+  .controls-row { gap: 8px; }
+  .theme-toggle { margin-left: 0; }
 }
 </style>
 </head>
 <body>
 
+<div class="toast-container" id="toast-container"></div>
+
 <!-- Mobile header -->
 <div class="mobile-header">
   <div class="mobile-logo">Macro<span>.</span>Tracker</div>
-  <button class="hamburger" onclick="toggleSidebar()">☰</button>
+  <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">☰</button>
 </div>
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
 <div class="shell">
 
 <!-- SIDEBAR -->
-<nav class="sidebar" id="sidebar">
+<nav class="sidebar" id="sidebar" aria-label="Navigatie">
   <div class="sidebar-logo">Macro<span>.</span>Tracker</div>
 
   <div class="nav-section">
     <div class="nav-group-label">Overzicht</div>
-    <div class="nav-item active" onclick="scrollToTop()">
+    <div class="nav-item active" onclick="scrollToTop()" role="button" tabindex="0">
       <span class="nav-icon">◈</span> Dashboard
     </div>
   </div>
 
   <div class="nav-section">
     <div class="nav-group-label">Indicatoren</div>
-    <div class="nav-item" onclick="scrollToSection('sec-bbp')">
+    <div class="nav-item" onclick="scrollToSection('sec-bbp')" role="button" tabindex="0">
       <span class="nav-icon">◇</span> BBP &amp; Groei
     </div>
-    <div class="nav-item" onclick="scrollToSection('sec-prijzen')">
+    <div class="nav-item" onclick="scrollToSection('sec-prijzen')" role="button" tabindex="0">
       <span class="nav-icon">◇</span> Inflatie &amp; Rente
     </div>
-    <div class="nav-item" onclick="scrollToSection('sec-arbeids')">
+    <div class="nav-item" onclick="scrollToSection('sec-arbeids')" role="button" tabindex="0">
       <span class="nav-icon">◇</span> Arbeidsmarkt
     </div>
-    <div class="nav-item" onclick="scrollToSection('sec-overig')">
+    <div class="nav-item" onclick="scrollToSection('sec-overig')" role="button" tabindex="0">
       <span class="nav-icon">◇</span> Handel &amp; Schulden
+    </div>
+    <div class="nav-item" onclick="scrollToSection('sec-vergelijking')" role="button" tabindex="0">
+      <span class="nav-icon">◇</span> Vergelijking
     </div>
   </div>
 
   <div class="region-wrap">
     <div class="region-wrap-label">Regio's</div>
     <div class="region-btns">
-      <div class="region-btn" data-region="BE" onclick="toggleRegion('BE')">
+      <div class="region-btn" data-region="BE" onclick="toggleRegion('BE')" role="button" tabindex="0">
         <div class="rb-dot" style="background:var(--be)"></div> 🇧🇪 België
       </div>
-      <div class="region-btn" data-region="EZ" onclick="toggleRegion('EZ')">
+      <div class="region-btn" data-region="EZ" onclick="toggleRegion('EZ')" role="button" tabindex="0">
         <div class="rb-dot" style="background:var(--ez)"></div> 🇪🇺 Eurozone
       </div>
-      <div class="region-btn" data-region="US" onclick="toggleRegion('US')">
+      <div class="region-btn" data-region="US" onclick="toggleRegion('US')" role="button" tabindex="0">
         <div class="rb-dot" style="background:var(--us)"></div> 🇺🇸 Amerika
       </div>
-      <div class="region-btn" data-region="CN" onclick="toggleRegion('CN')">
+      <div class="region-btn" data-region="CN" onclick="toggleRegion('CN')" role="button" tabindex="0">
         <div class="rb-dot" style="background:var(--cn)"></div> 🇨🇳 China
       </div>
     </div>
@@ -313,15 +433,17 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
   <!-- CONTROLS -->
   <div class="controls-row">
     <span class="ctrl-label">Periode</span>
-    <select class="range-select" id="yearRange" onchange="onRangeChange()">
+    <select class="range-select" id="yearRange" onchange="onRangeChange()" aria-label="Periodefilter">
       <option value="5">5 jaar</option>
       <option value="10" selected>10 jaar</option>
       <option value="15">15 jaar</option>
       <option value="20">20 jaar</option>
       <option value="30">30 jaar</option>
     </select>
-    <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">⟳ Vernieuwen</button>
-    <div class="status-dot" id="statusDot"></div>
+    <button class="ctrl-btn" id="refreshBtn" onclick="loadAll()" aria-label="Vernieuwen">⟳ Vernieuwen</button>
+    <button class="ctrl-btn" onclick="exportCSV()" aria-label="Exporteer CSV">⬇ CSV</button>
+    <div class="status-dot" id="statusDot" title="Data status"></div>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" aria-label="Thema wisselen">🌙</button>
   </div>
 
   <!-- KPI STRIP -->
@@ -330,31 +452,37 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
       <div class="ctx-card-label">BBP België</div>
       <div class="ctx-card-value gold" id="kpi-be-gdp">—</div>
       <div class="ctx-card-sub">nominaal USD</div>
+      <div class="ctx-card-delta" id="kpi-be-gdp-delta"></div>
     </div>
     <div class="ctx-card">
       <div class="ctx-card-label">BBP Eurozone</div>
       <div class="ctx-card-value gold" id="kpi-ez-gdp">—</div>
       <div class="ctx-card-sub">nominaal USD</div>
+      <div class="ctx-card-delta" id="kpi-ez-gdp-delta"></div>
     </div>
     <div class="ctx-card">
       <div class="ctx-card-label">BBP Amerika</div>
       <div class="ctx-card-value gold" id="kpi-us-gdp">—</div>
       <div class="ctx-card-sub">nominaal USD</div>
+      <div class="ctx-card-delta" id="kpi-us-gdp-delta"></div>
     </div>
     <div class="ctx-card">
       <div class="ctx-card-label">BBP China</div>
       <div class="ctx-card-value gold" id="kpi-cn-gdp">—</div>
       <div class="ctx-card-sub">nominaal USD</div>
+      <div class="ctx-card-delta" id="kpi-cn-gdp-delta"></div>
     </div>
     <div class="ctx-card">
       <div class="ctx-card-label">Inflatie BE</div>
       <div class="ctx-card-value" id="kpi-be-cpi">—</div>
       <div class="ctx-card-sub">CPI jaarlijks %</div>
+      <div class="ctx-card-delta" id="kpi-be-cpi-delta"></div>
     </div>
     <div class="ctx-card">
       <div class="ctx-card-label">Werkloosheid US</div>
       <div class="ctx-card-value" id="kpi-us-unemp">—</div>
       <div class="ctx-card-sub">% actieve bevolking</div>
+      <div class="ctx-card-delta" id="kpi-us-unemp-delta"></div>
     </div>
   </div>
 
@@ -369,11 +497,14 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
             <div class="chart-card-title">Nominaal BBP</div>
             <div class="chart-card-subtitle">Lopende prijzen, huidige USD (miljard)</div>
           </div>
-          <span class="chart-freq yearly">Jaarlijks</span>
+          <div class="chart-card-actions">
+            <button class="chart-action-btn" onclick="downloadChart('chart-gdp-nom','BBP_Nominaal')" title="Download grafiek">⬇</button>
+            <span class="chart-freq yearly">Jaarlijks</span>
+          </div>
         </div>
         <div class="chart-body">
           <div class="chart-canvas-wrap">
-            <canvas id="chart-gdp-nom"></canvas>
+            <canvas id="chart-gdp-nom" aria-label="Nominaal BBP grafiek"></canvas>
             <div class="chart-overlay" id="ov-gdp-nom"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
           </div>
           <div class="chart-legend" id="leg-gdp-nom"></div>
@@ -387,7 +518,10 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
             <div class="chart-card-title">Nominaal BBP per Capita</div>
             <div class="chart-card-subtitle">Rijkdom per inwoner, huidige USD</div>
           </div>
-          <span class="chart-freq yearly">Jaarlijks</span>
+          <div class="chart-card-actions">
+            <button class="chart-action-btn" onclick="downloadChart('chart-gdp-cap','BBP_per_Capita')" title="Download grafiek">⬇</button>
+            <span class="chart-freq yearly">Jaarlijks</span>
+          </div>
         </div>
         <div class="chart-body">
           <div class="chart-canvas-wrap">
@@ -405,7 +539,10 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
             <div class="chart-card-title">Reëel BBP-groei</div>
             <div class="chart-card-subtitle">Economische groei, jaarlijkse % verandering</div>
           </div>
-          <span class="chart-freq yearly">Jaarlijks</span>
+          <div class="chart-card-actions">
+            <button class="chart-action-btn" onclick="downloadChart('chart-gdp-growth','BBP_Groei')" title="Download grafiek">⬇</button>
+            <span class="chart-freq yearly">Jaarlijks</span>
+          </div>
         </div>
         <div class="chart-body">
           <div class="chart-canvas-wrap">
@@ -433,7 +570,10 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
             <div class="chart-card-title">Inflatie (CPI)</div>
             <div class="chart-card-subtitle">Consumentenprijsindex, jaarlijkse %</div>
           </div>
-          <span class="chart-freq yearly">Jaarlijks</span>
+          <div class="chart-card-actions">
+            <button class="chart-action-btn" onclick="downloadChart('chart-cpi','CPI_Inflatie')" title="Download grafiek">⬇</button>
+            <span class="chart-freq yearly">Jaarlijks</span>
+          </div>
         </div>
         <div class="chart-body">
           <div class="chart-canvas-wrap">
@@ -451,7 +591,10 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
             <div class="chart-card-title">Reële Rente</div>
             <div class="chart-card-subtitle">Reële rente % — World Bank proxy</div>
           </div>
-          <span class="chart-freq live">Live</span>
+          <div class="chart-card-actions">
+            <button class="chart-action-btn" onclick="downloadChart('chart-rate','Rente')" title="Download grafiek">⬇</button>
+            <span class="chart-freq live">Live</span>
+          </div>
         </div>
         <div class="chart-body">
           <div class="chart-canvas-wrap">
@@ -479,7 +622,10 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
             <div class="chart-card-title">Werkloosheidscijfer</div>
             <div class="chart-card-subtitle">% van actieve bevolking</div>
           </div>
-          <span class="chart-freq yearly">Jaarlijks</span>
+          <div class="chart-card-actions">
+            <button class="chart-action-btn" onclick="downloadChart('chart-unemp','Werkloosheid')" title="Download grafiek">⬇</button>
+            <span class="chart-freq yearly">Jaarlijks</span>
+          </div>
         </div>
         <div class="chart-body">
           <div class="chart-canvas-wrap">
@@ -497,7 +643,10 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
             <div class="chart-card-title">Consumentenvertrouwen</div>
             <div class="chart-card-subtitle">Groei privéconsumptie % — World Bank proxy</div>
           </div>
-          <span class="chart-freq quarterly">Kwartaal</span>
+          <div class="chart-card-actions">
+            <button class="chart-action-btn" onclick="downloadChart('chart-conf','Consumentenvertrouwen')" title="Download grafiek">⬇</button>
+            <span class="chart-freq quarterly">Kwartaal</span>
+          </div>
         </div>
         <div class="chart-body">
           <div class="chart-canvas-wrap">
@@ -525,7 +674,10 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
             <div class="chart-card-title">Handelsbalans</div>
             <div class="chart-card-subtitle">Netto-export als % van BBP</div>
           </div>
-          <span class="chart-freq yearly">Jaarlijks</span>
+          <div class="chart-card-actions">
+            <button class="chart-action-btn" onclick="downloadChart('chart-trade','Handelsbalans')" title="Download grafiek">⬇</button>
+            <span class="chart-freq yearly">Jaarlijks</span>
+          </div>
         </div>
         <div class="chart-body">
           <div class="chart-canvas-wrap">
@@ -543,7 +695,10 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
             <div class="chart-card-title">Schuldgraad</div>
             <div class="chart-card-subtitle">Overheidsschuld als % van BBP</div>
           </div>
-          <span class="chart-freq yearly">Jaarlijks</span>
+          <div class="chart-card-actions">
+            <button class="chart-action-btn" onclick="downloadChart('chart-debt','Schuldgraad')" title="Download grafiek">⬇</button>
+            <span class="chart-freq yearly">Jaarlijks</span>
+          </div>
         </div>
         <div class="chart-body">
           <div class="chart-canvas-wrap">
@@ -555,6 +710,34 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- ══ VERGELIJKINGSTABEL ══ -->
+  <div id="sec-vergelijking">
+    <div class="section-title">Regio Vergelijking — Laatste Beschikbare Waarden</div>
+    <div class="chart-card" style="padding:0; overflow:hidden;">
+      <div class="table-wrap">
+        <table class="comparison-table" id="comparison-table">
+          <thead>
+            <tr>
+              <th>Regio</th>
+              <th>BBP (USD)</th>
+              <th>BBP/capita</th>
+              <th>Groei %</th>
+              <th>CPI %</th>
+              <th>Werkloos. %</th>
+              <th>Schuld % BBP</th>
+              <th>Handelsbal. %</th>
+            </tr>
+          </thead>
+          <tbody id="comparison-tbody">
+            <tr><td colspan="8" style="text-align:center; color:var(--muted); padding:20px; font-family:'IBM Plex Mono',monospace; font-size:11px;">Laden...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -591,6 +774,34 @@ const PROXY_BASE = 'https://macro-tracker.vercel.app';
 
 let charts = {};
 let yearRange = 10;
+let lastFetchedData = {}; // cache for CSV export & comparison table
+
+// ═══════════════════════════════════════════════════
+//  THEME
+// ═══════════════════════════════════════════════════
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.dataset.theme === 'dark';
+  html.dataset.theme = isDark ? 'light' : 'dark';
+  document.getElementById('themeToggle').textContent = isDark ? '🌙' : '☀️';
+  // Redraw charts with new colors
+  Object.keys(charts).forEach(id => charts[id]?.update());
+}
+
+// ═══════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════
+function showToast(msg, type = 'success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span class="toast-icon">${type === 'success' ? '✓' : '✗'}</span> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.style.animation = 'slideOut .2s ease forwards';
+    setTimeout(() => t.remove(), 200);
+  }, 3000);
+}
 
 // ═══════════════════════════════════════════════════
 //  UTILS
@@ -604,34 +815,67 @@ function showOverlay(id) {
   el.style.display = 'flex';
   el.innerHTML = `<div class="spinner"></div><div class="overlay-text">Laden...</div>`;
 }
-function errorOverlay(id, msg) {
+function errorOverlay(id, msg, retryFn) {
   const el = document.getElementById(id);
   if (!el) return;
   el.style.display = 'flex';
-  el.innerHTML = `<div class="overlay-text" style="color:#c62828;">⚠ ${msg}</div>`;
+  const retryId = 'retry_' + Math.random().toString(36).slice(2);
+  el.innerHTML = `
+    <div class="overlay-text" style="color:var(--error);">⚠ ${msg}</div>
+    ${retryFn ? `<button class="overlay-retry" id="${retryId}">↺ Opnieuw</button>` : ''}
+  `;
+  if (retryFn) document.getElementById(retryId)?.addEventListener('click', retryFn);
 }
 
 function fmtPct(v, dec=1) { if (v == null || isNaN(v)) return '—'; return v.toFixed(dec) + '%'; }
 function fmtNum(v, dec=0) { if (v == null) return '—'; return Number(v).toLocaleString('nl-BE', {maximumFractionDigits: dec}); }
 function nowStr() { return new Date().toLocaleString('nl-BE', {dateStyle:'medium', timeStyle:'short'}); }
 function getLastVal(arr) { if (!arr?.length) return null; return arr[arr.length-1].value; }
+function getPrevVal(arr) { if (!arr || arr.length < 2) return null; return arr[arr.length-2].value; }
+
 function setKpi(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function setKpiDelta(deltaId, arr) {
+  const el = document.getElementById(deltaId);
+  if (!el || !arr?.length) return;
+  const last = getLastVal(arr), prev = getPrevVal(arr);
+  if (last == null || prev == null) return;
+  const diff = last - prev;
+  const sign = diff >= 0 ? '+' : '';
+  el.textContent = `${sign}${diff.toFixed(2)} tov vorig jaar`;
+  el.className = `ctx-card-delta ${diff >= 0 ? 'up' : 'down'}`;
+}
 
 const ALL_REGIONS = ['BE','EZ','US','CN'];
 
 // ═══════════════════════════════════════════════════
 //  FETCH VIA VERCEL PROXY
 // ═══════════════════════════════════════════════════
+const fetchCache = new Map();
+
 async function fetchWBOne(indicator, isoCode, startYr, endYr) {
+  const cacheKey = `${indicator}_${isoCode}_${startYr}_${endYr}`;
+  if (fetchCache.has(cacheKey)) return fetchCache.get(cacheKey);
+
   const url = `${PROXY_BASE}/api/wb?country=${isoCode}&indicator=${indicator}&start=${startYr}&end=${endYr}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const json = await res.json();
-  if (!json || !json[1]) return [];
-  return json[1]
-    .filter(r => r.value != null)
-    .map(r => ({ year: parseInt(r.date), value: parseFloat(r.value) }))
-    .sort((a, b) => a.year - b.year);
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), 15000); // 15s timeout
+
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(timeout);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if (!json || !json[1]) return [];
+    const data = json[1]
+      .filter(r => r.value != null)
+      .map(r => ({ year: parseInt(r.date), value: parseFloat(r.value) }))
+      .sort((a, b) => a.year - b.year);
+    fetchCache.set(cacheKey, data);
+    return data;
+  } catch (e) {
+    clearTimeout(timeout);
+    throw e.name === 'AbortError' ? new Error('Timeout na 15s') : e;
+  }
 }
 
 async function fetchWBAll(indicator, regions) {
@@ -650,9 +894,11 @@ async function fetchWBAll(indicator, regions) {
 // ═══════════════════════════════════════════════════
 //  CHART ENGINE
 // ═══════════════════════════════════════════════════
-const CHART_CFG = {
-  type: 'line',
-  options: {
+function getChartOptions() {
+  const isDark = document.documentElement.dataset.theme === 'dark';
+  const gridColor = isDark ? 'rgba(255,255,255,.06)' : '#e8e6e0';
+  const tickColor = isDark ? '#6b6b85' : '#8a8880';
+  return {
     responsive: true,
     maintainAspectRatio: false,
     animation: { duration: 500 },
@@ -673,18 +919,18 @@ const CHART_CFG = {
     },
     scales: {
       x: {
-        grid: { color: '#e8e6e0', drawBorder: false },
-        ticks: { color: '#8a8880', font: { family: 'IBM Plex Mono', size: 10 }, maxRotation: 0 },
+        grid: { color: gridColor, drawBorder: false },
+        ticks: { color: tickColor, font: { family: 'IBM Plex Mono', size: 10 }, maxRotation: 0 },
         border: { display: false }
       },
       y: {
-        grid: { color: '#e8e6e0', drawBorder: false },
-        ticks: { color: '#8a8880', font: { family: 'IBM Plex Mono', size: 10 } },
+        grid: { color: gridColor, drawBorder: false },
+        ticks: { color: tickColor, font: { family: 'IBM Plex Mono', size: 10 } },
         border: { display: false }
       }
     }
-  }
-};
+  };
+}
 
 function buildYears(...arrays) {
   const sy = startYear(), ey = new Date().getFullYear();
@@ -712,9 +958,14 @@ function makeDS(region, data, years) {
 function renderChart(canvasId, ovId, legId, luId, datasets, years, yFmt) {
   hideOverlay(ovId);
   if (charts[canvasId]) charts[canvasId].destroy();
-  const ctx = document.getElementById(canvasId).getContext('2d');
-  const cfg = JSON.parse(JSON.stringify(CHART_CFG));
-  cfg.data = { labels: years.map(String), datasets };
+  const ctx = document.getElementById(canvasId)?.getContext('2d');
+  if (!ctx) return;
+
+  const cfg = {
+    type: 'line',
+    data: { labels: years.map(String), datasets },
+    options: getChartOptions()
+  };
   cfg.options.plugins.tooltip.callbacks.label = c => {
     if (c.parsed.y == null) return null;
     return ` ${c.dataset.label}: ${yFmt(c.parsed.y)}`;
@@ -723,7 +974,7 @@ function renderChart(canvasId, ovId, legId, luId, datasets, years, yFmt) {
 
   const leg = document.getElementById(legId);
   if (leg) leg.innerHTML = datasets.map((ds, i) => `
-    <div class="legend-item" data-chart="${canvasId}" data-idx="${i}" onclick="toggleDS('${canvasId}',${i})">
+    <div class="legend-item" data-chart="${canvasId}" data-idx="${i}" onclick="toggleDS('${canvasId}',${i})" role="button" tabindex="0">
       <div class="legend-dot" style="background:${ds.borderColor}"></div>
       ${REGIONS[ds._region].flag} ${ds.label}
     </div>`).join('');
@@ -741,6 +992,95 @@ function toggleDS(chartId, idx) {
 }
 
 // ═══════════════════════════════════════════════════
+//  DOWNLOAD CHART AS PNG
+// ═══════════════════════════════════════════════════
+function downloadChart(canvasId, name) {
+  const ch = charts[canvasId];
+  if (!ch) return showToast('Geen grafiek beschikbaar', 'error');
+  const link = document.createElement('a');
+  link.download = `MacroTracker_${name}_${new Date().toISOString().slice(0,10)}.png`;
+  link.href = ch.toBase64Image('image/png', 1);
+  link.click();
+  showToast(`${name} gedownload`);
+}
+
+// ═══════════════════════════════════════════════════
+//  CSV EXPORT
+// ═══════════════════════════════════════════════════
+function exportCSV() {
+  if (!Object.keys(lastFetchedData).length) {
+    return showToast('Laad eerst data', 'error');
+  }
+  const rows = [['Indicator','Regio','Jaar','Waarde']];
+  for (const [indicator, regionData] of Object.entries(lastFetchedData)) {
+    for (const [region, series] of Object.entries(regionData)) {
+      for (const { year, value } of (series || [])) {
+        rows.push([indicator, REGIONS[region]?.label || region, year, value]);
+      }
+    }
+  }
+  const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `MacroTracker_${new Date().toISOString().slice(0,10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV geëxporteerd');
+}
+
+// ═══════════════════════════════════════════════════
+//  COMPARISON TABLE
+// ═══════════════════════════════════════════════════
+function updateComparisonTable() {
+  const tbody = document.getElementById('comparison-tbody');
+  if (!tbody) return;
+  const d = lastFetchedData;
+  const active = ALL_REGIONS.filter(r => activeRegions[r]);
+  if (!active.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted);font-family:\'IBM Plex Mono\',monospace;font-size:11px">Geen regio\'s geselecteerd</td></tr>'; return; }
+
+  tbody.innerHTML = active.map(r => {
+    const gdpNom   = d.GDP_NOM?.[r];
+    const gdpCap   = d.GDP_CAP?.[r];
+    const growth   = d.GDP_GROWTH?.[r];
+    const cpi      = d.CPI?.[r];
+    const unemp    = d.UNEMP?.[r];
+    const debt     = d.DEBT?.[r];
+    const trade    = d.TRADE_BAL?.[r];
+
+    const lastGdp = getLastVal(gdpNom);
+    const lastCap = getLastVal(gdpCap);
+    const lastGrowth = getLastVal(growth);
+    const lastCpi = getLastVal(cpi);
+    const lastUnemp = getLastVal(unemp);
+    const lastDebt = getLastVal(debt);
+    const lastTrade = getLastVal(trade);
+
+    function cls(v, invert=false) {
+      if (v == null) return 'neutral';
+      if (invert) return v > 0 ? 'negative' : 'positive';
+      return v > 0 ? 'positive' : 'negative';
+    }
+
+    const gdpStr = lastGdp != null
+      ? (lastGdp > 1e12 ? '$'+fmtNum(lastGdp/1e12,2)+'T' : '$'+fmtNum(lastGdp/1e9,0)+'B')
+      : '—';
+
+    return `<tr>
+      <td><span class="tbl-flag">${REGIONS[r].flag}</span>${REGIONS[r].label}</td>
+      <td class="tbl-val neutral">${gdpStr}</td>
+      <td class="tbl-val neutral">${lastCap != null ? '$'+fmtNum(lastCap,0) : '—'}</td>
+      <td class="tbl-val ${cls(lastGrowth)}">${fmtPct(lastGrowth,2)}</td>
+      <td class="tbl-val ${cls(lastCpi,true)}">${fmtPct(lastCpi,2)}</td>
+      <td class="tbl-val ${cls(lastUnemp != null ? -lastUnemp : null)}">${fmtPct(lastUnemp,1)}</td>
+      <td class="tbl-val ${lastDebt > 90 ? 'negative' : lastDebt > 60 ? 'neutral' : 'positive'}">${fmtPct(lastDebt,1)}</td>
+      <td class="tbl-val ${cls(lastTrade)}">${fmtPct(lastTrade,2)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════
 //  LOADERS
 // ═══════════════════════════════════════════════════
 async function loadGdpNom() {
@@ -748,15 +1088,17 @@ async function loadGdpNom() {
   try {
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.GDP_NOM, active);
+    lastFetchedData.GDP_NOM = data;
     const years = buildYears(...Object.values(data));
     const ds = active.map(r => makeDS(r, (data[r]||[]).map(p => ({...p, value: p.value/1e9})), years));
     renderChart('chart-gdp-nom','ov-gdp-nom','leg-gdp-nom','lu-gdp-nom', ds, years, v => '$'+fmtNum(v,1)+'B');
-    // KPIs — use data already fetched
     setKpi('kpi-be-gdp', data.BE?.length ? '$'+fmtNum(getLastVal(data.BE)/1e9,0)+'B' : '—');
     setKpi('kpi-ez-gdp', data.EZ?.length ? '$'+fmtNum(getLastVal(data.EZ)/1e12,2)+'T' : '—');
     setKpi('kpi-us-gdp', data.US?.length ? '$'+fmtNum(getLastVal(data.US)/1e12,2)+'T' : '—');
     setKpi('kpi-cn-gdp', data.CN?.length ? '$'+fmtNum(getLastVal(data.CN)/1e12,2)+'T' : '—');
-  } catch(e) { errorOverlay('ov-gdp-nom', e.message); }
+    setKpiDelta('kpi-be-gdp-delta', data.BE?.map(p => ({...p, value: p.value/1e9})));
+    setKpiDelta('kpi-us-gdp-delta', data.US?.map(p => ({...p, value: p.value/1e12})));
+  } catch(e) { errorOverlay('ov-gdp-nom', e.message, loadGdpNom); }
 }
 
 async function loadGdpCap() {
@@ -764,10 +1106,11 @@ async function loadGdpCap() {
   try {
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.GDP_CAP, active);
+    lastFetchedData.GDP_CAP = data;
     const years = buildYears(...Object.values(data));
     renderChart('chart-gdp-cap','ov-gdp-cap','leg-gdp-cap','lu-gdp-cap',
       active.map(r => makeDS(r, data[r]||[], years)), years, v => '$'+fmtNum(v,0));
-  } catch(e) { errorOverlay('ov-gdp-cap', e.message); }
+  } catch(e) { errorOverlay('ov-gdp-cap', e.message, loadGdpCap); }
 }
 
 async function loadGdpGrowth() {
@@ -775,10 +1118,11 @@ async function loadGdpGrowth() {
   try {
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.GDP_GROWTH, active);
+    lastFetchedData.GDP_GROWTH = data;
     const years = buildYears(...Object.values(data));
     renderChart('chart-gdp-growth','ov-gdp-growth','leg-gdp-growth','lu-gdp-growth',
       active.map(r => makeDS(r, data[r]||[], years)), years, v => fmtPct(v,2));
-  } catch(e) { errorOverlay('ov-gdp-growth', e.message); }
+  } catch(e) { errorOverlay('ov-gdp-growth', e.message, loadGdpGrowth); }
 }
 
 async function loadCpi() {
@@ -786,11 +1130,15 @@ async function loadCpi() {
   try {
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.CPI, active);
+    lastFetchedData.CPI = data;
     const years = buildYears(...Object.values(data));
     renderChart('chart-cpi','ov-cpi','leg-cpi','lu-cpi',
       active.map(r => makeDS(r, data[r]||[], years)), years, v => fmtPct(v,2));
-    if (data.BE?.length) setKpi('kpi-be-cpi', fmtPct(getLastVal(data.BE),2));
-  } catch(e) { errorOverlay('ov-cpi', e.message); }
+    if (data.BE?.length) {
+      setKpi('kpi-be-cpi', fmtPct(getLastVal(data.BE),2));
+      setKpiDelta('kpi-be-cpi-delta', data.BE);
+    }
+  } catch(e) { errorOverlay('ov-cpi', e.message, loadCpi); }
 }
 
 async function loadRate() {
@@ -798,10 +1146,11 @@ async function loadRate() {
   try {
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.INT_RATE, active);
+    lastFetchedData.INT_RATE = data;
     const years = buildYears(...Object.values(data));
     renderChart('chart-rate','ov-rate','leg-rate','lu-rate',
       active.map(r => makeDS(r, data[r]||[], years)), years, v => fmtPct(v,2));
-  } catch(e) { errorOverlay('ov-rate', e.message); }
+  } catch(e) { errorOverlay('ov-rate', e.message, loadRate); }
 }
 
 async function loadUnemp() {
@@ -809,11 +1158,15 @@ async function loadUnemp() {
   try {
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.UNEMP, active);
+    lastFetchedData.UNEMP = data;
     const years = buildYears(...Object.values(data));
     renderChart('chart-unemp','ov-unemp','leg-unemp','lu-unemp',
       active.map(r => makeDS(r, data[r]||[], years)), years, v => fmtPct(v,1));
-    if (data.US?.length) setKpi('kpi-us-unemp', fmtPct(getLastVal(data.US),1));
-  } catch(e) { errorOverlay('ov-unemp', e.message); }
+    if (data.US?.length) {
+      setKpi('kpi-us-unemp', fmtPct(getLastVal(data.US),1));
+      setKpiDelta('kpi-us-unemp-delta', data.US);
+    }
+  } catch(e) { errorOverlay('ov-unemp', e.message, loadUnemp); }
 }
 
 async function loadConf() {
@@ -821,10 +1174,11 @@ async function loadConf() {
   try {
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.CONS_EXP, active);
+    lastFetchedData.CONS_EXP = data;
     const years = buildYears(...Object.values(data));
     renderChart('chart-conf','ov-conf','leg-conf','lu-conf',
       active.map(r => makeDS(r, data[r]||[], years)), years, v => fmtPct(v,2));
-  } catch(e) { errorOverlay('ov-conf', e.message); }
+  } catch(e) { errorOverlay('ov-conf', e.message, loadConf); }
 }
 
 async function loadTrade() {
@@ -832,10 +1186,11 @@ async function loadTrade() {
   try {
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.TRADE_BAL, active);
+    lastFetchedData.TRADE_BAL = data;
     const years = buildYears(...Object.values(data));
     renderChart('chart-trade','ov-trade','leg-trade','lu-trade',
       active.map(r => makeDS(r, data[r]||[], years)), years, v => fmtPct(v,2));
-  } catch(e) { errorOverlay('ov-trade', e.message); }
+  } catch(e) { errorOverlay('ov-trade', e.message, loadTrade); }
 }
 
 async function loadDebt() {
@@ -843,10 +1198,11 @@ async function loadDebt() {
   try {
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.DEBT, active);
+    lastFetchedData.DEBT = data;
     const years = buildYears(...Object.values(data));
     renderChart('chart-debt','ov-debt','leg-debt','lu-debt',
       active.map(r => makeDS(r, data[r]||[], years)), years, v => fmtPct(v,1));
-  } catch(e) { errorOverlay('ov-debt', e.message); }
+  } catch(e) { errorOverlay('ov-debt', e.message, loadDebt); }
 }
 
 // ═══════════════════════════════════════════════════
@@ -860,30 +1216,72 @@ function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function scrollToSection(id) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (window.innerWidth <= 768) toggleSidebar();
 }
 function toggleRegion(r) {
   activeRegions[r] = !activeRegions[r];
   document.querySelector(`.region-btn[data-region="${r}"]`).classList.toggle('inactive', !activeRegions[r]);
+  fetchCache.clear(); // invalidate cache when regions change
   loadAll();
 }
 function onRangeChange() {
   yearRange = parseInt(document.getElementById('yearRange').value);
+  fetchCache.clear(); // invalidate cache when range changes
   loadAll();
 }
+
+// Keyboard nav for nav items
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.matches('.nav-item, .region-btn, .legend-item')) {
+    e.target.click();
+  }
+});
+
+// Highlight active nav item on scroll
+const sections = ['sec-bbp','sec-prijzen','sec-arbeids','sec-overig','sec-vergelijking'];
+const navItems = document.querySelectorAll('.nav-item');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.getBoundingClientRect().top < 150) current = id;
+  });
+  navItems.forEach(item => {
+    const fn = item.getAttribute('onclick') || '';
+    const isActive = fn.includes(current) || (!current && fn.includes('scrollToTop'));
+    item.classList.toggle('active', isActive);
+  });
+}, { passive: true });
 
 // ═══════════════════════════════════════════════════
 //  LOAD ALL
 // ═══════════════════════════════════════════════════
 async function loadAll() {
   const btn = document.getElementById('refreshBtn');
+  const dot = document.getElementById('statusDot');
+  btn.disabled = true;
   btn.classList.add('loading');
   btn.textContent = '⟳ Laden...';
-  await Promise.allSettled([
+  dot.classList.remove('error');
+
+  const results = await Promise.allSettled([
     loadGdpNom(), loadGdpCap(), loadGdpGrowth(),
     loadCpi(), loadRate(),
     loadUnemp(), loadConf(),
     loadTrade(), loadDebt(),
   ]);
+
+  const hasError = results.some(r => r.status === 'rejected');
+  if (hasError) {
+    dot.classList.add('error');
+    showToast('Sommige data kon niet geladen worden', 'error');
+  } else {
+    showToast('Data succesvol geladen');
+  }
+
+  updateComparisonTable();
+
+  btn.disabled = false;
   btn.classList.remove('loading');
   btn.textContent = '⟳ Vernieuwen';
 }
