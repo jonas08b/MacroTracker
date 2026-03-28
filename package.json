@@ -1,5 +1,15 @@
 {
   "name": "macro-tracker-proxy",
-  "version": "1.0.0",
-  "description": "CORS proxy voor World Bank API — gebruikt door Macro.Tracker dashboard"
+  "version": "2.0.0",
+  "description": "CORS proxy voor World Bank API — gebruikt door Macro.Tracker dashboard",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "devDependencies": {
+    "vercel": "^37.0.0"
+  }
 }
