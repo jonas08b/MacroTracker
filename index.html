@@ -4,833 +4,590 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Macro.Tracker — Economische Indicatoren</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  :root {
-    --bg: #0a0c10;
-    --surface: #111318;
-    --surface2: #181c24;
-    --border: #1e2330;
-    --border2: #252c3a;
-    --accent: #4ade80;
-    --accent2: #22d3ee;
-    --accent3: #f59e0b;
-    --accent4: #f87171;
-    --text: #e8eaf0;
-    --text2: #8892aa;
-    --text3: #4a5568;
-    --be: #4ade80;
-    --ez: #22d3ee;
-    --us: #f59e0b;
-    --cn: #f87171;
-    --sidebar: 260px;
-  }
+:root {
+  --bg: #f2f1ed;
+  --card: #ffffff;
+  --border: #dedad2;
+  --accent: #1a1a2e;
+  --gold: #b8963e;
+  --muted: #8a8880;
+  --sidebar-w: 230px;
+  --be: #2e7d32;
+  --ez: #1565c0;
+  --us: #b8963e;
+  --cn: #c62828;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--accent); }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── SHELL ── */
+.shell { display: flex; min-height: 100vh; }
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    display: flex;
-    height: 100vh;
-    overflow: hidden;
-  }
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w); min-width: var(--sidebar-w);
+  background: var(--accent); color: #fff;
+  position: fixed; top: 0; left: 0; height: 100vh;
+  overflow-y: auto; z-index: 200;
+  display: flex; flex-direction: column;
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+}
+.sidebar-logo {
+  font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: #fff; padding: 24px 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.08); flex-shrink: 0;
+}
+.sidebar-logo span { color: var(--gold); }
+.nav-section { padding: 12px 0 4px; }
+.nav-group-label {
+  font-size: 9px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+  color: rgba(255,255,255,.28); padding: 10px 20px 4px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 20px; font-size: 13px; color: rgba(255,255,255,.6);
+  cursor: pointer; border-left: 2px solid transparent; transition: all .15s;
+}
+.nav-item:hover { color: #fff; background: rgba(255,255,255,.06); }
+.nav-item.active { color: #fff; border-left-color: var(--gold); background: rgba(255,255,255,.08); }
+.nav-item .nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
 
-  /* ── SIDEBAR ── */
-  #sidebar {
-    width: var(--sidebar);
-    min-width: var(--sidebar);
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    z-index: 10;
-    transition: width .3s ease, min-width .3s ease;
-  }
-  #sidebar.collapsed { width: 60px; min-width: 60px; }
-  #sidebar.collapsed .logo-text,
-  #sidebar.collapsed .nav-label,
-  #sidebar.collapsed .section-title,
-  #sidebar.collapsed .region-badges { display: none; }
-  #sidebar.collapsed .nav-item { justify-content: center; padding: 12px; }
-  #sidebar.collapsed .logo { justify-content: center; padding: 20px 12px; }
+/* Region toggles in sidebar */
+.region-wrap { padding: 12px 20px 16px; border-top: 1px solid rgba(255,255,255,.08); }
+.region-wrap-label { font-size: 9px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.3); margin-bottom: 10px; }
+.region-btns { display: flex; flex-direction: column; gap: 5px; }
+.region-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 2px; cursor: pointer;
+  font-size: 12px; font-weight: 500; transition: all .15s;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.7);
+}
+.region-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
+.region-btn.inactive { opacity: .35; }
+.region-btn .rb-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 24px 20px 20px;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-    user-select: none;
-  }
-  .logo-icon {
-    width: 32px; height: 32px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 15px; flex-shrink: 0;
-  }
-  .logo-text {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 16px;
-    letter-spacing: -.3px;
-    white-space: nowrap;
-  }
-  .logo-text span { color: var(--accent2); }
+/* Data cadence footer in sidebar */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 14px 20px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  font-size: 10px; font-family: 'IBM Plex Mono', monospace;
+  color: rgba(255,255,255,.28); line-height: 1.8;
+}
+.sidebar-footer .cadence-title { font-weight: 600; color: rgba(255,255,255,.45); margin-top: 6px; }
+.sidebar-footer .cadence-title:first-child { margin-top: 0; }
 
-  .section-title {
-    font-size: 10px;
-    font-family: 'DM Mono', monospace;
-    color: var(--text3);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    padding: 16px 20px 6px;
-  }
+/* ── MOBILE ── */
+.mobile-header {
+  display: none; position: fixed; top: 0; left: 0; right: 0; height: 52px;
+  background: var(--accent); z-index: 300; align-items: center; padding: 0 16px; gap: 12px;
+}
+.mobile-logo { font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #fff; flex: 1; }
+.mobile-logo span { color: var(--gold); }
+.hamburger { background: none; border: none; cursor: pointer; padding: 4px; color: #fff; font-size: 20px; line-height: 1; }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 190; }
+.sidebar-overlay.open { display: block; }
 
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: background .15s, color .15s;
-    border-radius: 0;
-    color: var(--text2);
-    font-size: 13px;
-    font-weight: 400;
-    position: relative;
-    white-space: nowrap;
-  }
-  .nav-item:hover { background: var(--surface2); color: var(--text); }
-  .nav-item.active {
-    background: rgba(74, 222, 128, .08);
-    color: var(--accent);
-  }
-  .nav-item.active::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 2px;
-    background: var(--accent);
-    border-radius: 0 2px 2px 0;
-  }
-  .nav-icon { font-size: 14px; flex-shrink: 0; }
+/* ── MAIN ── */
+.main { flex: 1; margin-left: var(--sidebar-w); padding: 36px 40px 60px; min-width: 0; }
 
-  .region-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    padding: 12px 20px 20px;
-  }
-  .badge {
-    font-size: 10px;
-    font-family: 'DM Mono', monospace;
-    padding: 3px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: opacity .2s, transform .15s;
-    font-weight: 500;
-    letter-spacing: .5px;
-    border: 1px solid transparent;
-  }
-  .badge[data-region="BE"] { background: rgba(74,222,128,.15); color: var(--be); border-color: rgba(74,222,128,.25); }
-  .badge[data-region="EZ"] { background: rgba(34,211,238,.15); color: var(--ez); border-color: rgba(34,211,238,.25); }
-  .badge[data-region="US"] { background: rgba(245,158,11,.15); color: var(--us); border-color: rgba(245,158,11,.25); }
-  .badge[data-region="CN"] { background: rgba(248,113,113,.15); color: var(--cn); border-color: rgba(248,113,113,.25); }
-  .badge.inactive { opacity: .35; }
+/* ── PAGE HEADER ── */
+.page-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  border-bottom: 2px solid var(--accent); padding-bottom: 16px; margin-bottom: 28px;
+  flex-wrap: wrap; gap: 12px;
+}
+.page-header h1 { font-size: 18px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.meta-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.meta-pill {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  background: var(--accent); color: rgba(255,255,255,.7); padding: 4px 10px; border-radius: 2px;
+}
+.meta-pill b { color: var(--gold); font-weight: 600; }
 
-  .sidebar-footer {
-    margin-top: auto;
-    padding: 16px 20px;
-    border-top: 1px solid var(--border);
-    font-size: 11px;
-    color: var(--text3);
-    font-family: 'DM Mono', monospace;
-    line-height: 1.6;
-  }
+/* Controls row */
+.controls-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 28px; flex-wrap: wrap;
+}
+.ctrl-label { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.range-select {
+  background: var(--accent); border: none;
+  color: #fff; border-radius: 2px;
+  padding: 8px 12px; font-size: 11px;
+  font-family: 'IBM Plex Mono', monospace;
+  cursor: pointer; outline: none;
+}
+.range-select option { background: #1a1a2e; }
+.refresh-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; border: 1.5px solid var(--border);
+  color: var(--accent); padding: 7px 14px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  cursor: pointer; border-radius: 2px; transition: all .15s;
+}
+.refresh-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.refresh-btn.loading { opacity: .6; pointer-events: none; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #2e7d32; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-  /* ── MAIN ── */
-  #main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+/* ── KPI STRIP ── */
+.ctx-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 8px; margin-bottom: 28px; }
+.ctx-card { background: var(--accent); padding: 12px 14px; border-radius: 3px; }
+.ctx-card-label { font-size: 9px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 4px; }
+.ctx-card-value { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; color: #fff; }
+.ctx-card-sub { font-size: 9px; color: rgba(255,255,255,.3); font-family: 'IBM Plex Mono', monospace; margin-top: 2px; }
+.ctx-card-value.gold { color: var(--gold); }
 
-  /* TOPBAR */
-  #topbar {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 0 28px;
-    height: 60px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    flex-shrink: 0;
-  }
-  #menu-btn {
-    background: none; border: none; color: var(--text2);
-    cursor: pointer; font-size: 18px; padding: 6px;
-    border-radius: 6px; transition: color .15s, background .15s;
-    flex-shrink: 0;
-  }
-  #menu-btn:hover { color: var(--text); background: var(--surface2); }
+/* ── SECTION TITLE ── */
+.section-title {
+  font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.section-divider { height: 1px; background: var(--border); margin: 32px 0 24px; }
 
-  .topbar-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    flex: 1;
-  }
-  .topbar-title span { color: var(--text2); font-weight: 400; font-size: 13px; margin-left: 8px; font-family: 'DM Sans', sans-serif; }
+/* ── CHART CARDS ── */
+.charts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px,1fr)); gap: 16px; margin-bottom: 20px; }
+.chart-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: 3px;
+  transition: box-shadow .2s;
+}
+.chart-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.08); }
+.chart-card.full-width { grid-column: 1 / -1; }
 
-  .topbar-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .range-select {
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    color: var(--text);
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 12px;
-    font-family: 'DM Mono', monospace;
-    cursor: pointer;
-    outline: none;
-    transition: border-color .15s;
-  }
-  .range-select:focus { border-color: var(--accent); }
+.chart-card-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 14px 16px 0;
+}
+.chart-card-title {
+  font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 2px;
+}
+.chart-card-subtitle { font-size: 12px; font-weight: 600; color: var(--accent); }
 
-  .refresh-btn {
-    display: flex; align-items: center; gap: 6px;
-    background: rgba(74,222,128,.1);
-    border: 1px solid rgba(74,222,128,.25);
-    color: var(--accent);
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 12px;
-    font-family: 'DM Mono', monospace;
-    cursor: pointer;
-    transition: background .15s;
-  }
-  .refresh-btn:hover { background: rgba(74,222,128,.18); }
-  .refresh-btn.loading { opacity: .6; pointer-events: none; }
+.chart-freq {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 2px; flex-shrink: 0;
+}
+.chart-freq.yearly  { background: rgba(26,26,46,.08); color: var(--accent); }
+.chart-freq.quarterly { background: rgba(184,150,62,.12); color: var(--gold); }
+.chart-freq.live    { background: rgba(46,125,50,.12); color: #2e7d32; }
 
-  .status-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--accent);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: .3; }
-  }
+.chart-body { padding: 14px 16px 16px; }
+.chart-canvas-wrap { position: relative; height: 200px; }
+.chart-card.full-width .chart-canvas-wrap { height: 185px; }
 
-  /* CONTENT */
-  #content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px 28px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border2) transparent;
-  }
+/* Loading overlay */
+.chart-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: rgba(242,241,237,.85);
+  border-radius: 2px; gap: 8px; z-index: 5;
+}
+.spinner {
+  width: 22px; height: 22px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.overlay-text { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--muted); }
 
-  /* KPI ROW */
-  .kpi-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-  .kpi-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
-    transition: border-color .2s;
-  }
-  .kpi-card:hover { border-color: var(--border2); }
-  .kpi-label {
-    font-size: 10px;
-    font-family: 'DM Mono', monospace;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 6px;
-  }
-  .kpi-value {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 20px;
-    margin-bottom: 3px;
-    transition: color .3s;
-  }
-  .kpi-sub {
-    font-size: 11px;
-    color: var(--text3);
-    font-family: 'DM Mono', monospace;
-  }
-  .kpi-flag { font-size: 13px; margin-right: 4px; }
+/* Legend */
+.chart-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+.legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+  color: var(--muted); cursor: pointer; transition: opacity .15s;
+}
+.legend-item:hover { color: var(--accent); }
+.legend-item.hidden { opacity: .3; text-decoration: line-through; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.last-updated { font-size: 9px; font-family: 'IBM Plex Mono', monospace; color: var(--border); margin-top: 6px; text-align: right; }
 
-  /* CHART SECTION */
-  .chart-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-bottom: 20px;
-    overflow: hidden;
-  }
-  .chart-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-  }
-  .chart-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-  }
-  .chart-subtitle {
-    font-size: 11px;
-    color: var(--text3);
-    font-family: 'DM Mono', monospace;
-    margin-top: 2px;
-  }
-  .chart-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .chart-freq {
-    font-size: 10px;
-    font-family: 'DM Mono', monospace;
-    padding: 3px 8px;
-    border-radius: 20px;
-    background: var(--surface2);
-    color: var(--text3);
-    border: 1px solid var(--border);
-  }
-  .chart-freq.yearly { background: rgba(34,211,238,.1); color: var(--accent2); border-color: rgba(34,211,238,.2); }
-  .chart-freq.quarterly { background: rgba(245,158,11,.1); color: var(--accent3); border-color: rgba(245,158,11,.2); }
-  .chart-freq.daily { background: rgba(74,222,128,.1); color: var(--accent); border-color: rgba(74,222,128,.2); }
-
-  .chart-body {
-    padding: 20px;
-    position: relative;
-  }
-  .chart-canvas-wrap {
-    position: relative;
-    height: 220px;
-  }
-
-  /* LOADING / ERROR */
-  .chart-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: rgba(10,12,16,.7);
-    border-radius: 8px;
-    gap: 10px;
-    z-index: 5;
-  }
-  .spinner {
-    width: 28px; height: 28px;
-    border: 2px solid var(--border2);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin .7s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .overlay-text {
-    font-size: 12px;
-    font-family: 'DM Mono', monospace;
-    color: var(--text3);
-  }
-
-  /* LEGEND */
-  .chart-legend {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-top: 12px;
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-family: 'DM Mono', monospace;
-    color: var(--text2);
-    cursor: pointer;
-    transition: opacity .2s;
-  }
-  .legend-item.hidden { opacity: .35; text-decoration: line-through; }
-  .legend-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  /* GRID */
-  .charts-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-  @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
-
-  /* SECTION HEADER */
-  .section-header {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-  .section-header h2 {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 18px;
-  }
-  .section-header p {
-    font-size: 12px;
-    color: var(--text3);
-    font-family: 'DM Mono', monospace;
-  }
-  .section-divider {
-    height: 1px;
-    background: var(--border);
-    margin: 28px 0 20px;
-  }
-
-  /* ERROR STATE */
-  .error-msg {
-    font-size: 11px;
-    font-family: 'DM Mono', monospace;
-    color: var(--accent4);
-    padding: 8px 0;
-  }
-
-  /* SCROLLBAR */
-  #content::-webkit-scrollbar { width: 4px; }
-  #content::-webkit-scrollbar-track { background: transparent; }
-  #content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-  /* TOOLTIP custom override via Chart.js */
-  .chartjs-tooltip {
-    background: var(--surface2) !important;
-    border: 1px solid var(--border2) !important;
-    border-radius: 8px !important;
-    font-family: 'DM Mono', monospace !important;
-    font-size: 11px !important;
-  }
-
-  .last-updated {
-    font-size: 10px;
-    font-family: 'DM Mono', monospace;
-    color: var(--text3);
-    margin-top: 6px;
-    text-align: right;
-  }
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .charts-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .mobile-header { display: flex; }
+  .main { margin-left: 0; padding: 68px 16px 40px; }
+  .ctx-strip { grid-template-columns: repeat(2,1fr); }
+  .page-header { flex-direction: column; }
+}
 </style>
 </head>
 <body>
 
+<!-- Mobile header -->
+<div class="mobile-header">
+  <div class="mobile-logo">Macro<span>.</span>Tracker</div>
+  <button class="hamburger" onclick="toggleSidebar()">☰</button>
+</div>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="shell">
+
 <!-- SIDEBAR -->
-<nav id="sidebar">
-  <div class="logo" onclick="toggleSidebar()">
-    <div class="logo-icon">◈</div>
-    <div class="logo-text">Macro<span>.Tracker</span></div>
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">Macro<span>.</span>Tracker</div>
+
+  <div class="nav-section">
+    <div class="nav-group-label">Overzicht</div>
+    <div class="nav-item active" onclick="scrollToTop()">
+      <span class="nav-icon">◈</span> Dashboard
+    </div>
   </div>
 
-  <div class="section-title">Navigatie</div>
-  <div class="nav-item active" onclick="scrollTo(0,0)">
-    <span class="nav-icon">◈</span>
-    <span class="nav-label">Dashboard</span>
-  </div>
-  <div class="nav-item" onclick="scrollToSection('sec-bbp')">
-    <span class="nav-icon">◇</span>
-    <span class="nav-label">BBP & Groei</span>
-  </div>
-  <div class="nav-item" onclick="scrollToSection('sec-prijzen')">
-    <span class="nav-icon">◇</span>
-    <span class="nav-label">Prijzen & Rente</span>
-  </div>
-  <div class="nav-item" onclick="scrollToSection('sec-arbeids')">
-    <span class="nav-icon">◇</span>
-    <span class="nav-label">Arbeidsmarkt</span>
-  </div>
-  <div class="nav-item" onclick="scrollToSection('sec-overig')">
-    <span class="nav-icon">◇</span>
-    <span class="nav-label">Handel & Schulden</span>
+  <div class="nav-section">
+    <div class="nav-group-label">Indicatoren</div>
+    <div class="nav-item" onclick="scrollToSection('sec-bbp')">
+      <span class="nav-icon">◇</span> BBP &amp; Groei
+    </div>
+    <div class="nav-item" onclick="scrollToSection('sec-prijzen')">
+      <span class="nav-icon">◇</span> Inflatie &amp; Rente
+    </div>
+    <div class="nav-item" onclick="scrollToSection('sec-arbeids')">
+      <span class="nav-icon">◇</span> Arbeidsmarkt
+    </div>
+    <div class="nav-item" onclick="scrollToSection('sec-overig')">
+      <span class="nav-icon">◇</span> Handel &amp; Schulden
+    </div>
   </div>
 
-  <div class="section-title">Regio's</div>
-  <div class="region-badges">
-    <div class="badge" data-region="BE" onclick="toggleRegion('BE')">🇧🇪 BE</div>
-    <div class="badge" data-region="EZ" onclick="toggleRegion('EZ')">🇪🇺 EZ</div>
-    <div class="badge" data-region="US" onclick="toggleRegion('US')">🇺🇸 US</div>
-    <div class="badge" data-region="CN" onclick="toggleRegion('CN')">🇨🇳 CN</div>
-  </div>
-
-  <div class="section-title">Data update</div>
-  <div style="padding: 4px 20px 12px; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text3); line-height: 1.8;">
-    <div style="color:var(--accent2);">YEARLY</div>
-    <div>BBP, Schuld, Handel</div>
-    <div style="color:var(--accent3); margin-top:6px;">QUARTERLY</div>
-    <div>BBP-groei, CPI</div>
-    <div style="color:var(--accent); margin-top:6px;">DAILY</div>
-    <div>Rente, Consument</div>
+  <div class="region-wrap">
+    <div class="region-wrap-label">Regio's</div>
+    <div class="region-btns">
+      <div class="region-btn" data-region="BE" onclick="toggleRegion('BE')">
+        <div class="rb-dot" style="background:var(--be)"></div> 🇧🇪 België
+      </div>
+      <div class="region-btn" data-region="EZ" onclick="toggleRegion('EZ')">
+        <div class="rb-dot" style="background:var(--ez)"></div> 🇪🇺 Eurozone
+      </div>
+      <div class="region-btn" data-region="US" onclick="toggleRegion('US')">
+        <div class="rb-dot" style="background:var(--us)"></div> 🇺🇸 Amerika
+      </div>
+      <div class="region-btn" data-region="CN" onclick="toggleRegion('CN')">
+        <div class="rb-dot" style="background:var(--cn)"></div> 🇨🇳 China
+      </div>
+    </div>
   </div>
 
   <div class="sidebar-footer">
-    World Bank API<br>
-    FRED — St. Louis Fed<br>
-    <span style="color:var(--accent);">✓</span> Open source
+    <div class="cadence-title">YEARLY</div>
+    <div>BBP, Schuld, Handel, CPI</div>
+    <div class="cadence-title">LIVE</div>
+    <div>Rente, Vertrouwen</div>
+    <div style="margin-top:10px; color:rgba(255,255,255,.18);">
+      World Bank API<br>Open source data
+    </div>
   </div>
 </nav>
 
 <!-- MAIN -->
-<div id="main">
-  <!-- TOPBAR -->
-  <div id="topbar">
-    <button id="menu-btn" onclick="toggleSidebar()">☰</button>
-    <div class="topbar-title">
-      Dashboard
-      <span>Macro-economische indicatoren</span>
-    </div>
-    <div class="topbar-controls">
-      <select class="range-select" id="yearRange" onchange="onRangeChange()">
-        <option value="5">5 jaar</option>
-        <option value="10" selected>10 jaar</option>
-        <option value="15">15 jaar</option>
-        <option value="20">20 jaar</option>
-        <option value="30">30 jaar</option>
-      </select>
-      <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">
-        <span>⟳</span> Vernieuwen
-      </button>
-      <div class="status-dot" id="statusDot"></div>
+<div class="main">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1>Macro-economisch Dashboard</h1>
+    <div class="meta-row">
+      <div class="meta-pill">Bron <b>World Bank</b></div>
+      <div class="meta-pill">Proxy <b id="meta-proxy">macro-tracker.vercel.app</b></div>
     </div>
   </div>
 
-  <!-- CONTENT -->
-  <div id="content">
+  <!-- CONTROLS -->
+  <div class="controls-row">
+    <span class="ctrl-label">Periode</span>
+    <select class="range-select" id="yearRange" onchange="onRangeChange()">
+      <option value="5">5 jaar</option>
+      <option value="10" selected>10 jaar</option>
+      <option value="15">15 jaar</option>
+      <option value="20">20 jaar</option>
+      <option value="30">30 jaar</option>
+    </select>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">⟳ Vernieuwen</button>
+    <div class="status-dot" id="statusDot"></div>
+  </div>
 
-    <!-- KPI ROW -->
-    <div class="kpi-row" id="kpiRow">
-      <div class="kpi-card">
-        <div class="kpi-label">BBP België</div>
-        <div class="kpi-value" id="kpi-be-gdp" style="color:var(--be)">—</div>
-        <div class="kpi-sub">nominaal, miljard €</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">BBP Eurozone</div>
-        <div class="kpi-value" id="kpi-ez-gdp" style="color:var(--ez)">—</div>
-        <div class="kpi-sub">nominaal, biljoen €</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">BBP Amerika</div>
-        <div class="kpi-value" id="kpi-us-gdp" style="color:var(--us)">—</div>
-        <div class="kpi-sub">nominaal, biljoen $</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">BBP China</div>
-        <div class="kpi-value" id="kpi-cn-gdp" style="color:var(--cn)">—</div>
-        <div class="kpi-sub">nominaal, biljoen $</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Inflatie BE</div>
-        <div class="kpi-value" id="kpi-be-cpi" style="color:var(--be)">—</div>
-        <div class="kpi-sub">CPI, jaarlijks %</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Werkloosheid US</div>
-        <div class="kpi-value" id="kpi-us-unemp" style="color:var(--us)">—</div>
-        <div class="kpi-sub">% actieve bevolking</div>
-      </div>
+  <!-- KPI STRIP -->
+  <div class="ctx-strip">
+    <div class="ctx-card">
+      <div class="ctx-card-label">BBP België</div>
+      <div class="ctx-card-value gold" id="kpi-be-gdp">—</div>
+      <div class="ctx-card-sub">nominaal USD</div>
     </div>
-
-    <!-- BBP SECTIE -->
-    <div id="sec-bbp">
-      <div class="section-header">
-        <h2>BBP &amp; Economische Groei</h2>
-        <p>Bruto Binnenlands Product — nominaal &amp; reëel</p>
-      </div>
-
-      <div class="charts-grid">
-        <div class="chart-section">
-          <div class="chart-header">
-            <div>
-              <div class="chart-title">Nominaal BBP</div>
-              <div class="chart-subtitle">Lopende prijzen, huidige valuta (mrd $)</div>
-            </div>
-            <div class="chart-meta">
-              <span class="chart-freq yearly">YEARLY</span>
-            </div>
-          </div>
-          <div class="chart-body">
-            <div class="chart-canvas-wrap">
-              <canvas id="chart-gdp-nom"></canvas>
-              <div class="chart-overlay" id="ov-gdp-nom"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
-            </div>
-            <div class="chart-legend" id="leg-gdp-nom"></div>
-            <div class="last-updated" id="lu-gdp-nom"></div>
-          </div>
-        </div>
-
-        <div class="chart-section">
-          <div class="chart-header">
-            <div>
-              <div class="chart-title">Nominaal BBP per Capita</div>
-              <div class="chart-subtitle">Rijkdom per inwoner (huidige $)</div>
-            </div>
-            <div class="chart-meta">
-              <span class="chart-freq yearly">YEARLY</span>
-            </div>
-          </div>
-          <div class="chart-body">
-            <div class="chart-canvas-wrap">
-              <canvas id="chart-gdp-cap"></canvas>
-              <div class="chart-overlay" id="ov-gdp-cap"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
-            </div>
-            <div class="chart-legend" id="leg-gdp-cap"></div>
-            <div class="last-updated" id="lu-gdp-cap"></div>
-          </div>
-        </div>
-
-        <div class="chart-section" style="grid-column: 1 / -1;">
-          <div class="chart-header">
-            <div>
-              <div class="chart-title">Reëel BBP-groei</div>
-              <div class="chart-subtitle">Economische groei, jaarlijkse % verandering</div>
-            </div>
-            <div class="chart-meta">
-              <span class="chart-freq yearly">YEARLY</span>
-            </div>
-          </div>
-          <div class="chart-body">
-            <div class="chart-canvas-wrap" style="height:200px;">
-              <canvas id="chart-gdp-growth"></canvas>
-              <div class="chart-overlay" id="ov-gdp-growth"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
-            </div>
-            <div class="chart-legend" id="leg-gdp-growth"></div>
-            <div class="last-updated" id="lu-gdp-growth"></div>
-          </div>
-        </div>
-      </div>
+    <div class="ctx-card">
+      <div class="ctx-card-label">BBP Eurozone</div>
+      <div class="ctx-card-value gold" id="kpi-ez-gdp">—</div>
+      <div class="ctx-card-sub">nominaal USD</div>
     </div>
-
-    <div class="section-divider"></div>
-
-    <!-- PRIJZEN SECTIE -->
-    <div id="sec-prijzen">
-      <div class="section-header">
-        <h2>Inflatie &amp; Rentevoeten</h2>
-        <p>CPI-inflatie &amp; beleidsrente vergelijking</p>
-      </div>
-
-      <div class="charts-grid">
-        <div class="chart-section">
-          <div class="chart-header">
-            <div>
-              <div class="chart-title">Inflatie (CPI)</div>
-              <div class="chart-subtitle">Consumentenprijsindex, jaarlijkse %</div>
-            </div>
-            <div class="chart-meta">
-              <span class="chart-freq yearly">YEARLY</span>
-            </div>
-          </div>
-          <div class="chart-body">
-            <div class="chart-canvas-wrap">
-              <canvas id="chart-cpi"></canvas>
-              <div class="chart-overlay" id="ov-cpi"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
-            </div>
-            <div class="chart-legend" id="leg-cpi"></div>
-            <div class="last-updated" id="lu-cpi"></div>
-          </div>
-        </div>
-
-        <div class="chart-section">
-          <div class="chart-header">
-            <div>
-              <div class="chart-title">Beleidsrente</div>
-              <div class="chart-subtitle">Reële rente % — World Bank (proxy beleidsrente)</div>
-            </div>
-            <div class="chart-meta">
-              <span class="chart-freq daily">LIVE</span>
-            </div>
-          </div>
-          <div class="chart-body">
-            <div class="chart-canvas-wrap">
-              <canvas id="chart-rate"></canvas>
-              <div class="chart-overlay" id="ov-rate"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
-            </div>
-            <div class="chart-legend" id="leg-rate"></div>
-            <div class="last-updated" id="lu-rate"></div>
-          </div>
-        </div>
-      </div>
+    <div class="ctx-card">
+      <div class="ctx-card-label">BBP Amerika</div>
+      <div class="ctx-card-value gold" id="kpi-us-gdp">—</div>
+      <div class="ctx-card-sub">nominaal USD</div>
     </div>
-
-    <div class="section-divider"></div>
-
-    <!-- ARBEIDSMARKT -->
-    <div id="sec-arbeids">
-      <div class="section-header">
-        <h2>Arbeidsmarkt</h2>
-        <p>Werkloosheidscijfers &amp; consumentenvertrouwen</p>
-      </div>
-
-      <div class="charts-grid">
-        <div class="chart-section">
-          <div class="chart-header">
-            <div>
-              <div class="chart-title">Werkloosheidscijfer</div>
-              <div class="chart-subtitle">% van actieve bevolking</div>
-            </div>
-            <div class="chart-meta">
-              <span class="chart-freq yearly">YEARLY</span>
-            </div>
-          </div>
-          <div class="chart-body">
-            <div class="chart-canvas-wrap">
-              <canvas id="chart-unemp"></canvas>
-              <div class="chart-overlay" id="ov-unemp"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
-            </div>
-            <div class="chart-legend" id="leg-unemp"></div>
-            <div class="last-updated" id="lu-unemp"></div>
-          </div>
-        </div>
-
-        <div class="chart-section">
-          <div class="chart-header">
-            <div>
-              <div class="chart-title">Consumentenvertrouwen</div>
-              <div class="chart-subtitle">Groei privéconsumptie % — World Bank (proxy vertrouwen)</div>
-            </div>
-            <div class="chart-meta">
-              <span class="chart-freq quarterly">QUARTERLY</span>
-            </div>
-          </div>
-          <div class="chart-body">
-            <div class="chart-canvas-wrap">
-              <canvas id="chart-conf"></canvas>
-              <div class="chart-overlay" id="ov-conf"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
-            </div>
-            <div class="chart-legend" id="leg-conf"></div>
-            <div class="last-updated" id="lu-conf"></div>
-          </div>
-        </div>
-      </div>
+    <div class="ctx-card">
+      <div class="ctx-card-label">BBP China</div>
+      <div class="ctx-card-value gold" id="kpi-cn-gdp">—</div>
+      <div class="ctx-card-sub">nominaal USD</div>
     </div>
-
-    <div class="section-divider"></div>
-
-    <!-- HANDEL & SCHULDEN -->
-    <div id="sec-overig">
-      <div class="section-header">
-        <h2>Handel &amp; Overheidsschuld</h2>
-        <p>Handelsbalans (% BBP) &amp; bruto schuldgraad</p>
-      </div>
-
-      <div class="charts-grid">
-        <div class="chart-section">
-          <div class="chart-header">
-            <div>
-              <div class="chart-title">Handelsbalans</div>
-              <div class="chart-subtitle">Netto-export als % van BBP</div>
-            </div>
-            <div class="chart-meta">
-              <span class="chart-freq yearly">YEARLY</span>
-            </div>
-          </div>
-          <div class="chart-body">
-            <div class="chart-canvas-wrap">
-              <canvas id="chart-trade"></canvas>
-              <div class="chart-overlay" id="ov-trade"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
-            </div>
-            <div class="chart-legend" id="leg-trade"></div>
-            <div class="last-updated" id="lu-trade"></div>
-          </div>
-        </div>
-
-        <div class="chart-section">
-          <div class="chart-header">
-            <div>
-              <div class="chart-title">Schuldgraad</div>
-              <div class="chart-subtitle">Overheidsschuld als % van BBP</div>
-            </div>
-            <div class="chart-meta">
-              <span class="chart-freq yearly">YEARLY</span>
-            </div>
-          </div>
-          <div class="chart-body">
-            <div class="chart-canvas-wrap">
-              <canvas id="chart-debt"></canvas>
-              <div class="chart-overlay" id="ov-debt"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
-            </div>
-            <div class="chart-legend" id="leg-debt"></div>
-            <div class="last-updated" id="lu-debt"></div>
-          </div>
-        </div>
-      </div>
+    <div class="ctx-card">
+      <div class="ctx-card-label">Inflatie BE</div>
+      <div class="ctx-card-value" id="kpi-be-cpi">—</div>
+      <div class="ctx-card-sub">CPI jaarlijks %</div>
     </div>
+    <div class="ctx-card">
+      <div class="ctx-card-label">Werkloosheid US</div>
+      <div class="ctx-card-value" id="kpi-us-unemp">—</div>
+      <div class="ctx-card-sub">% actieve bevolking</div>
+    </div>
+  </div>
 
-    <div style="height:40px;"></div>
-  </div><!-- /content -->
+  <!-- ══ BBP & GROEI ══ -->
+  <div id="sec-bbp">
+    <div class="section-title">BBP &amp; Economische Groei</div>
+    <div class="charts-grid">
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title">Nominaal BBP</div>
+            <div class="chart-card-subtitle">Lopende prijzen, huidige USD (miljard)</div>
+          </div>
+          <span class="chart-freq yearly">Jaarlijks</span>
+        </div>
+        <div class="chart-body">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-gdp-nom"></canvas>
+            <div class="chart-overlay" id="ov-gdp-nom"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
+          </div>
+          <div class="chart-legend" id="leg-gdp-nom"></div>
+          <div class="last-updated" id="lu-gdp-nom"></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title">Nominaal BBP per Capita</div>
+            <div class="chart-card-subtitle">Rijkdom per inwoner, huidige USD</div>
+          </div>
+          <span class="chart-freq yearly">Jaarlijks</span>
+        </div>
+        <div class="chart-body">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-gdp-cap"></canvas>
+            <div class="chart-overlay" id="ov-gdp-cap"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
+          </div>
+          <div class="chart-legend" id="leg-gdp-cap"></div>
+          <div class="last-updated" id="lu-gdp-cap"></div>
+        </div>
+      </div>
+
+      <div class="chart-card full-width">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title">Reëel BBP-groei</div>
+            <div class="chart-card-subtitle">Economische groei, jaarlijkse % verandering</div>
+          </div>
+          <span class="chart-freq yearly">Jaarlijks</span>
+        </div>
+        <div class="chart-body">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-gdp-growth"></canvas>
+            <div class="chart-overlay" id="ov-gdp-growth"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
+          </div>
+          <div class="chart-legend" id="leg-gdp-growth"></div>
+          <div class="last-updated" id="lu-gdp-growth"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- ══ INFLATIE & RENTE ══ -->
+  <div id="sec-prijzen">
+    <div class="section-title">Inflatie &amp; Rentevoeten</div>
+    <div class="charts-grid">
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title">Inflatie (CPI)</div>
+            <div class="chart-card-subtitle">Consumentenprijsindex, jaarlijkse %</div>
+          </div>
+          <span class="chart-freq yearly">Jaarlijks</span>
+        </div>
+        <div class="chart-body">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-cpi"></canvas>
+            <div class="chart-overlay" id="ov-cpi"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
+          </div>
+          <div class="chart-legend" id="leg-cpi"></div>
+          <div class="last-updated" id="lu-cpi"></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title">Reële Rente</div>
+            <div class="chart-card-subtitle">Reële rente % — World Bank proxy</div>
+          </div>
+          <span class="chart-freq live">Live</span>
+        </div>
+        <div class="chart-body">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-rate"></canvas>
+            <div class="chart-overlay" id="ov-rate"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
+          </div>
+          <div class="chart-legend" id="leg-rate"></div>
+          <div class="last-updated" id="lu-rate"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- ══ ARBEIDSMARKT ══ -->
+  <div id="sec-arbeids">
+    <div class="section-title">Arbeidsmarkt</div>
+    <div class="charts-grid">
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title">Werkloosheidscijfer</div>
+            <div class="chart-card-subtitle">% van actieve bevolking</div>
+          </div>
+          <span class="chart-freq yearly">Jaarlijks</span>
+        </div>
+        <div class="chart-body">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-unemp"></canvas>
+            <div class="chart-overlay" id="ov-unemp"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
+          </div>
+          <div class="chart-legend" id="leg-unemp"></div>
+          <div class="last-updated" id="lu-unemp"></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title">Consumentenvertrouwen</div>
+            <div class="chart-card-subtitle">Groei privéconsumptie % — World Bank proxy</div>
+          </div>
+          <span class="chart-freq quarterly">Kwartaal</span>
+        </div>
+        <div class="chart-body">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-conf"></canvas>
+            <div class="chart-overlay" id="ov-conf"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
+          </div>
+          <div class="chart-legend" id="leg-conf"></div>
+          <div class="last-updated" id="lu-conf"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- ══ HANDEL & SCHULDEN ══ -->
+  <div id="sec-overig">
+    <div class="section-title">Handel &amp; Overheidsschuld</div>
+    <div class="charts-grid">
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title">Handelsbalans</div>
+            <div class="chart-card-subtitle">Netto-export als % van BBP</div>
+          </div>
+          <span class="chart-freq yearly">Jaarlijks</span>
+        </div>
+        <div class="chart-body">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-trade"></canvas>
+            <div class="chart-overlay" id="ov-trade"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
+          </div>
+          <div class="chart-legend" id="leg-trade"></div>
+          <div class="last-updated" id="lu-trade"></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title">Schuldgraad</div>
+            <div class="chart-card-subtitle">Overheidsschuld als % van BBP</div>
+          </div>
+          <span class="chart-freq yearly">Jaarlijks</span>
+        </div>
+        <div class="chart-body">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-debt"></canvas>
+            <div class="chart-overlay" id="ov-debt"><div class="spinner"></div><div class="overlay-text">Laden...</div></div>
+          </div>
+          <div class="chart-legend" id="leg-debt"></div>
+          <div class="last-updated" id="lu-debt"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="height:48px;"></div>
 </div><!-- /main -->
+</div><!-- /shell -->
 
 <script>
 // ═══════════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════════
 const REGIONS = {
-  BE: { label: 'België',   color: '#4ade80', iso: 'BEL', flag: '🇧🇪' },
-  EZ: { label: 'Eurozone', color: '#22d3ee', iso: 'XC',  flag: '🇪🇺' }, // WB code for EMU
-  US: { label: 'Amerika',  color: '#f59e0b', iso: 'USA', flag: '🇺🇸' },
-  CN: { label: 'China',    color: '#f87171', iso: 'CHN', flag: '🇨🇳' },
+  BE: { label: 'België',   color: '#2e7d32', flag: '🇧🇪' },
+  EZ: { label: 'Eurozone', color: '#1565c0', flag: '🇪🇺' },
+  US: { label: 'Amerika',  color: '#b8963e', flag: '🇺🇸' },
+  CN: { label: 'China',    color: '#c62828', flag: '🇨🇳' },
 };
-
-// Region key → World Bank ISO
 const R2ISO = { BE: 'BEL', EZ: 'XC', US: 'USA', CN: 'CHN' };
-// World Bank ISO → Region key
-const ISO2R = { BEL: 'BE', XC: 'EZ', USA: 'US', CHN: 'CN' };
-
-// Active regions
 const activeRegions = { BE: true, EZ: true, US: true, CN: true };
 
-// World Bank indicator codes
 const WB = {
-  GDP_NOM:    'NY.GDP.MKTP.CD',    // Nominaal BBP, huidige USD
-  GDP_CAP:    'NY.GDP.PCAP.CD',    // BBP per capita, huidige USD
-  GDP_GROWTH: 'NY.GDP.MKTP.KD.ZG', // Reëel BBP-groei %
-  CPI:        'FP.CPI.TOTL.ZG',    // CPI inflatie %
-  UNEMP:      'SL.UEM.TOTL.ZS',    // Werkloosheid %
-  TRADE_BAL:  'NE.RSB.GNFS.ZS',    // Handelsbalans % BBP
-  DEBT:       'GC.DOD.TOTL.GD.ZS', // Overheidsschuld % BBP
-  INT_RATE:   'FR.INR.RINR',        // Reële rente % (proxy beleidsrente)
-  CONS_EXP:   'NE.CON.PRVT.KD.ZG', // Groei privéconsumptie % (proxy vertrouwen)
+  GDP_NOM:    'NY.GDP.MKTP.CD',
+  GDP_CAP:    'NY.GDP.PCAP.CD',
+  GDP_GROWTH: 'NY.GDP.MKTP.KD.ZG',
+  CPI:        'FP.CPI.TOTL.ZG',
+  UNEMP:      'SL.UEM.TOTL.ZS',
+  TRADE_BAL:  'NE.RSB.GNFS.ZS',
+  DEBT:       'GC.DOD.TOTL.GD.ZS',
+  INT_RATE:   'FR.INR.RINR',
+  CONS_EXP:   'NE.CON.PRVT.KD.ZG',
 };
 
-// World Bank base — gebruik de v2 API met format=json (ondersteunt CORS)
-// ── PROXY URL ──────────────────────────────────────
-// Vervang dit door jouw eigen Vercel URL na deployment
-// Voorbeeld: 'https://macro-proxy.vercel.app'
-const PROXY_BASE = 'https://macro-tracker-roan.vercel.app/';
-// ───────────────────────────────────────────────────
+const PROXY_BASE = 'https://macro-tracker.vercel.app';
 
 let charts = {};
 let yearRange = 10;
@@ -840,43 +597,35 @@ let yearRange = 10;
 // ═══════════════════════════════════════════════════
 function startYear() { return new Date().getFullYear() - yearRange; }
 
-function hideOverlay(id) {
-  const el = document.getElementById(id);
-  if (el) el.style.display = 'none';
-}
-function showOverlay(id, msg = 'Laden...') {
+function hideOverlay(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+function showOverlay(id) {
   const el = document.getElementById(id);
   if (!el) return;
   el.style.display = 'flex';
-  el.innerHTML = `<div class="spinner"></div><div class="overlay-text">${msg}</div>`;
+  el.innerHTML = `<div class="spinner"></div><div class="overlay-text">Laden...</div>`;
 }
 function errorOverlay(id, msg) {
   const el = document.getElementById(id);
   if (!el) return;
   el.style.display = 'flex';
-  el.innerHTML = `<div class="overlay-text" style="color:#f87171;">⚠ ${msg}</div>`;
+  el.innerHTML = `<div class="overlay-text" style="color:#c62828;">⚠ ${msg}</div>`;
 }
 
-function fmtPct(v, dec=1) {
-  if (v == null || isNaN(v)) return '—';
-  return v.toFixed(dec) + '%';
-}
-function fmtNum(v, dec=0) {
-  if (v == null) return '—';
-  return Number(v).toLocaleString('nl-BE', {maximumFractionDigits: dec});
-}
-function nowStr() {
-  return new Date().toLocaleString('nl-BE', {dateStyle:'medium', timeStyle:'short'});
-}
+function fmtPct(v, dec=1) { if (v == null || isNaN(v)) return '—'; return v.toFixed(dec) + '%'; }
+function fmtNum(v, dec=0) { if (v == null) return '—'; return Number(v).toLocaleString('nl-BE', {maximumFractionDigits: dec}); }
+function nowStr() { return new Date().toLocaleString('nl-BE', {dateStyle:'medium', timeStyle:'short'}); }
+function getLastVal(arr) { if (!arr?.length) return null; return arr[arr.length-1].value; }
+function setKpi(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+
+const ALL_REGIONS = ['BE','EZ','US','CN'];
 
 // ═══════════════════════════════════════════════════
-//  WORLD BANK FETCH  — één land per request (CORS-safe)
+//  FETCH VIA VERCEL PROXY
 // ═══════════════════════════════════════════════════
 async function fetchWBOne(indicator, isoCode, startYr, endYr) {
-  // World Bank v2 ondersteunt CORS voor individuele landverzoeken
   const url = `${PROXY_BASE}/api/wb?country=${isoCode}&indicator=${indicator}&start=${startYr}&end=${endYr}`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`WB ${isoCode} HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = await res.json();
   if (!json || !json[1]) return [];
   return json[1]
@@ -885,7 +634,6 @@ async function fetchWBOne(indicator, isoCode, startYr, endYr) {
     .sort((a, b) => a.year - b.year);
 }
 
-// Haal indicator op voor alle actieve regio's parallel
 async function fetchWBAll(indicator, regions) {
   const sy = startYear(), ey = new Date().getFullYear();
   const results = await Promise.allSettled(
@@ -893,290 +641,231 @@ async function fetchWBAll(indicator, regions) {
   );
   const out = {};
   regions.forEach((r, i) => {
-    if (results[i].status === 'fulfilled') out[r] = results[i].value;
-    else { console.warn(`WB ${r} mislukt:`, results[i].reason); out[r] = []; }
+    out[r] = results[i].status === 'fulfilled' ? results[i].value : [];
+    if (results[i].status === 'rejected') console.warn(`WB ${r}:`, results[i].reason);
   });
   return out;
 }
 
 // ═══════════════════════════════════════════════════
-//  CHART HELPERS
+//  CHART ENGINE
 // ═══════════════════════════════════════════════════
-const CHART_DEFAULTS = {
+const CHART_CFG = {
   type: 'line',
   options: {
     responsive: true,
     maintainAspectRatio: false,
-    animation: { duration: 600, easing: 'easeInOutQuart' },
+    animation: { duration: 500 },
     interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#181c24',
-        borderColor: '#252c3a',
+        backgroundColor: '#1a1a2e',
+        borderColor: 'rgba(255,255,255,.08)',
         borderWidth: 1,
-        titleFont: { family: 'DM Mono', size: 11 },
-        bodyFont: { family: 'DM Mono', size: 11 },
-        titleColor: '#8892aa',
-        bodyColor: '#e8eaf0',
+        titleFont: { family: 'IBM Plex Mono', size: 11 },
+        bodyFont:  { family: 'IBM Plex Mono', size: 11 },
+        titleColor: 'rgba(255,255,255,.5)',
+        bodyColor:  '#fff',
         padding: 10,
         callbacks: {}
       }
     },
     scales: {
       x: {
-        grid: { color: '#1e2330', drawBorder: false },
-        ticks: { color: '#4a5568', font: { family: 'DM Mono', size: 10 }, maxRotation: 0 },
+        grid: { color: '#e8e6e0', drawBorder: false },
+        ticks: { color: '#8a8880', font: { family: 'IBM Plex Mono', size: 10 }, maxRotation: 0 },
         border: { display: false }
       },
       y: {
-        grid: { color: '#1e2330', drawBorder: false },
-        ticks: { color: '#4a5568', font: { family: 'DM Mono', size: 10 } },
+        grid: { color: '#e8e6e0', drawBorder: false },
+        ticks: { color: '#8a8880', font: { family: 'IBM Plex Mono', size: 10 } },
         border: { display: false }
       }
     }
   }
 };
 
-function makeDataset(region, data, years) {
-  const cfg = REGIONS[region];
-  const vals = years.map(yr => {
-    const pt = data.find(d => d.year === yr);
-    return pt ? pt.value : null;
-  });
+function buildYears(...arrays) {
+  const sy = startYear(), ey = new Date().getFullYear();
+  const s = new Set();
+  for (const arr of arrays) for (const p of arr) if (p.year >= sy && p.year <= ey) s.add(p.year);
+  if (!s.size) for (let y = sy; y <= ey; y++) s.add(y);
+  return [...s].sort((a,b) => a-b);
+}
+
+function makeDS(region, data, years) {
+  const c = REGIONS[region];
   return {
-    label: cfg.label,
-    data: vals,
-    borderColor: cfg.color,
-    backgroundColor: cfg.color + '18',
+    label: c.label,
+    data: years.map(yr => { const p = data.find(d => d.year === yr); return p ? p.value : null; }),
+    borderColor: c.color,
+    backgroundColor: c.color + '20',
     borderWidth: 2,
-    pointRadius: 3,
-    pointHoverRadius: 5,
-    pointBackgroundColor: cfg.color,
-    tension: 0.3,
-    fill: false,
-    spanGaps: true,
+    pointRadius: 3, pointHoverRadius: 5,
+    pointBackgroundColor: c.color,
+    tension: 0.3, fill: false, spanGaps: true,
     _region: region,
   };
 }
 
-function buildYearsFromMap(dataMap) {
-  const sy = startYear(), ey = new Date().getFullYear();
-  const years = new Set();
-  for (const arr of Object.values(dataMap)) {
-    for (const p of arr) { if (p.year >= sy && p.year <= ey) years.add(p.year); }
-  }
-  return [...years].sort((a,b)=>a-b);
-}
-
-function buildYearsFromArrays(...arrays) {
-  const sy = startYear(), ey = new Date().getFullYear();
-  const years = new Set();
-  for (const arr of arrays) {
-    for (const p of arr) { if (p.year >= sy && p.year <= ey) years.add(p.year); }
-  }
-  if (!years.size) { for(let y=sy; y<=ey; y++) years.add(y); }
-  return [...years].sort((a,b)=>a-b);
-}
-
-function renderChart(canvasId, overlayId, legId, luId, datasets, years, yFmt) {
-  hideOverlay(overlayId);
-  if (charts[canvasId]) { charts[canvasId].destroy(); }
+function renderChart(canvasId, ovId, legId, luId, datasets, years, yFmt) {
+  hideOverlay(ovId);
+  if (charts[canvasId]) charts[canvasId].destroy();
   const ctx = document.getElementById(canvasId).getContext('2d');
-  const cfg = JSON.parse(JSON.stringify(CHART_DEFAULTS));
+  const cfg = JSON.parse(JSON.stringify(CHART_CFG));
   cfg.data = { labels: years.map(String), datasets };
-  cfg.options.plugins.tooltip.callbacks.label = function(c) {
-    const v = c.parsed.y;
-    if (v == null) return null;
-    return ` ${c.dataset.label}: ${yFmt(v)}`;
+  cfg.options.plugins.tooltip.callbacks.label = c => {
+    if (c.parsed.y == null) return null;
+    return ` ${c.dataset.label}: ${yFmt(c.parsed.y)}`;
   };
   charts[canvasId] = new Chart(ctx, cfg);
 
   const leg = document.getElementById(legId);
-  if (leg) {
-    leg.innerHTML = datasets.map((ds, i) => `
-      <div class="legend-item" data-chart="${canvasId}" data-idx="${i}" onclick="toggleDataset('${canvasId}',${i})">
-        <div class="legend-dot" style="background:${ds.borderColor}"></div>
-        ${REGIONS[ds._region].flag} ${ds.label}
-      </div>`).join('');
-  }
+  if (leg) leg.innerHTML = datasets.map((ds, i) => `
+    <div class="legend-item" data-chart="${canvasId}" data-idx="${i}" onclick="toggleDS('${canvasId}',${i})">
+      <div class="legend-dot" style="background:${ds.borderColor}"></div>
+      ${REGIONS[ds._region].flag} ${ds.label}
+    </div>`).join('');
+
   const lu = document.getElementById(luId);
   if (lu) lu.textContent = `Bijgewerkt: ${nowStr()}`;
 }
 
-function toggleDataset(chartId, idx) {
-  const chart = charts[chartId];
-  if (!chart) return;
-  const meta = chart.getDatasetMeta(idx);
-  meta.hidden = !meta.hidden;
-  chart.update();
-  const legItem = document.querySelector(`.legend-item[data-chart="${chartId}"][data-idx="${idx}"]`);
-  if (legItem) legItem.classList.toggle('hidden', meta.hidden);
+function toggleDS(chartId, idx) {
+  const ch = charts[chartId]; if (!ch) return;
+  const m = ch.getDatasetMeta(idx);
+  m.hidden = !m.hidden; ch.update();
+  document.querySelector(`.legend-item[data-chart="${chartId}"][data-idx="${idx}"]`)
+    ?.classList.toggle('hidden', m.hidden);
 }
 
 // ═══════════════════════════════════════════════════
-//  HELPERS
+//  LOADERS
 // ═══════════════════════════════════════════════════
-function getLastVal(arr) {
-  if (!arr || !arr.length) return null;
-  return arr[arr.length-1].value;
-}
-function setKpi(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = val;
-}
-
-const ALL_REGIONS = ['BE','EZ','US','CN'];
-
-// ═══════════════════════════════════════════════════
-//  LOADERS — alle via World Bank individuele calls
-// ═══════════════════════════════════════════════════
-
 async function loadGdpNom() {
-  const ovId = 'ov-gdp-nom';
+  showOverlay('ov-gdp-nom');
   try {
-    showOverlay(ovId);
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.GDP_NOM, active);
-    const years = buildYearsFromArrays(...Object.values(data));
-    const ds = active.map(r => {
-      const arr = (data[r]||[]).map(p => ({...p, value: p.value/1e9}));
-      return makeDataset(r, arr, years);
-    });
-    renderChart('chart-gdp-nom','ov-gdp-nom','leg-gdp-nom','lu-gdp-nom', ds, years,
-      v => '$'+fmtNum(v,1)+'B');
-
-    // KPIs
-    const raw = await fetchWBAll(WB.GDP_NOM, ALL_REGIONS);
-    setKpi('kpi-be-gdp', raw.BE?.length ? '$'+fmtNum(getLastVal(raw.BE)/1e9,0)+'B' : '—');
-    setKpi('kpi-ez-gdp', raw.EZ?.length ? '$'+fmtNum(getLastVal(raw.EZ)/1e12,2)+'T' : '—');
-    setKpi('kpi-us-gdp', raw.US?.length ? '$'+fmtNum(getLastVal(raw.US)/1e12,2)+'T' : '—');
-    setKpi('kpi-cn-gdp', raw.CN?.length ? '$'+fmtNum(getLastVal(raw.CN)/1e12,2)+'T' : '—');
-  } catch(e) { errorOverlay(ovId, 'Laad fout: '+e.message); }
+    const years = buildYears(...Object.values(data));
+    const ds = active.map(r => makeDS(r, (data[r]||[]).map(p => ({...p, value: p.value/1e9})), years));
+    renderChart('chart-gdp-nom','ov-gdp-nom','leg-gdp-nom','lu-gdp-nom', ds, years, v => '$'+fmtNum(v,1)+'B');
+    // KPIs — use data already fetched
+    setKpi('kpi-be-gdp', data.BE?.length ? '$'+fmtNum(getLastVal(data.BE)/1e9,0)+'B' : '—');
+    setKpi('kpi-ez-gdp', data.EZ?.length ? '$'+fmtNum(getLastVal(data.EZ)/1e12,2)+'T' : '—');
+    setKpi('kpi-us-gdp', data.US?.length ? '$'+fmtNum(getLastVal(data.US)/1e12,2)+'T' : '—');
+    setKpi('kpi-cn-gdp', data.CN?.length ? '$'+fmtNum(getLastVal(data.CN)/1e12,2)+'T' : '—');
+  } catch(e) { errorOverlay('ov-gdp-nom', e.message); }
 }
 
 async function loadGdpCap() {
-  const ovId = 'ov-gdp-cap';
+  showOverlay('ov-gdp-cap');
   try {
-    showOverlay(ovId);
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.GDP_CAP, active);
-    const years = buildYearsFromArrays(...Object.values(data));
-    const ds = active.map(r => makeDataset(r, data[r]||[], years));
-    renderChart('chart-gdp-cap','ov-gdp-cap','leg-gdp-cap','lu-gdp-cap', ds, years,
-      v => '$'+fmtNum(v,0));
-  } catch(e) { errorOverlay(ovId, 'Laad fout: '+e.message); }
+    const years = buildYears(...Object.values(data));
+    renderChart('chart-gdp-cap','ov-gdp-cap','leg-gdp-cap','lu-gdp-cap',
+      active.map(r => makeDS(r, data[r]||[], years)), years, v => '$'+fmtNum(v,0));
+  } catch(e) { errorOverlay('ov-gdp-cap', e.message); }
 }
 
 async function loadGdpGrowth() {
-  const ovId = 'ov-gdp-growth';
+  showOverlay('ov-gdp-growth');
   try {
-    showOverlay(ovId);
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.GDP_GROWTH, active);
-    const years = buildYearsFromArrays(...Object.values(data));
-    const ds = active.map(r => makeDataset(r, data[r]||[], years));
-    renderChart('chart-gdp-growth','ov-gdp-growth','leg-gdp-growth','lu-gdp-growth', ds, years,
-      v => fmtPct(v,2));
-  } catch(e) { errorOverlay(ovId, 'Laad fout: '+e.message); }
+    const years = buildYears(...Object.values(data));
+    renderChart('chart-gdp-growth','ov-gdp-growth','leg-gdp-growth','lu-gdp-growth',
+      active.map(r => makeDS(r, data[r]||[], years)), years, v => fmtPct(v,2));
+  } catch(e) { errorOverlay('ov-gdp-growth', e.message); }
 }
 
 async function loadCpi() {
-  const ovId = 'ov-cpi';
+  showOverlay('ov-cpi');
   try {
-    showOverlay(ovId);
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.CPI, active);
-    const years = buildYearsFromArrays(...Object.values(data));
-    const ds = active.map(r => makeDataset(r, data[r]||[], years));
-    renderChart('chart-cpi','ov-cpi','leg-cpi','lu-cpi', ds, years, v => fmtPct(v,2));
-
+    const years = buildYears(...Object.values(data));
+    renderChart('chart-cpi','ov-cpi','leg-cpi','lu-cpi',
+      active.map(r => makeDS(r, data[r]||[], years)), years, v => fmtPct(v,2));
     if (data.BE?.length) setKpi('kpi-be-cpi', fmtPct(getLastVal(data.BE),2));
-  } catch(e) { errorOverlay(ovId, 'Laad fout: '+e.message); }
+  } catch(e) { errorOverlay('ov-cpi', e.message); }
 }
 
 async function loadRate() {
-  const ovId = 'ov-rate';
+  showOverlay('ov-rate');
   try {
-    showOverlay(ovId);
-    // FR.INR.RINR = reële rente (beste CORS-veilige proxy via World Bank)
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.INT_RATE, active);
-    const years = buildYearsFromArrays(...Object.values(data));
-    const ds = active.map(r => makeDataset(r, data[r]||[], years));
-    renderChart('chart-rate','ov-rate','leg-rate','lu-rate', ds, years, v=>fmtPct(v,2));
-  } catch(e) { errorOverlay(ovId, 'Laad fout: '+e.message); }
+    const years = buildYears(...Object.values(data));
+    renderChart('chart-rate','ov-rate','leg-rate','lu-rate',
+      active.map(r => makeDS(r, data[r]||[], years)), years, v => fmtPct(v,2));
+  } catch(e) { errorOverlay('ov-rate', e.message); }
 }
 
 async function loadUnemp() {
-  const ovId = 'ov-unemp';
+  showOverlay('ov-unemp');
   try {
-    showOverlay(ovId);
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.UNEMP, active);
-    const years = buildYearsFromArrays(...Object.values(data));
-    const ds = active.map(r => makeDataset(r, data[r]||[], years));
-    renderChart('chart-unemp','ov-unemp','leg-unemp','lu-unemp', ds, years, v=>fmtPct(v,1));
-
+    const years = buildYears(...Object.values(data));
+    renderChart('chart-unemp','ov-unemp','leg-unemp','lu-unemp',
+      active.map(r => makeDS(r, data[r]||[], years)), years, v => fmtPct(v,1));
     if (data.US?.length) setKpi('kpi-us-unemp', fmtPct(getLastVal(data.US),1));
-  } catch(e) { errorOverlay(ovId, 'Laad fout: '+e.message); }
+  } catch(e) { errorOverlay('ov-unemp', e.message); }
 }
 
 async function loadConf() {
-  const ovId = 'ov-conf';
+  showOverlay('ov-conf');
   try {
-    showOverlay(ovId);
-    // Privéconsumptiegroei als proxy voor consumentenvertrouwen (CORS-veilig via WB)
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.CONS_EXP, active);
-    const years = buildYearsFromArrays(...Object.values(data));
-    const ds = active.map(r => makeDataset(r, data[r]||[], years));
-    renderChart('chart-conf','ov-conf','leg-conf','lu-conf', ds, years, v=>fmtPct(v,2));
-  } catch(e) { errorOverlay(ovId, 'Laad fout: '+e.message); }
+    const years = buildYears(...Object.values(data));
+    renderChart('chart-conf','ov-conf','leg-conf','lu-conf',
+      active.map(r => makeDS(r, data[r]||[], years)), years, v => fmtPct(v,2));
+  } catch(e) { errorOverlay('ov-conf', e.message); }
 }
 
 async function loadTrade() {
-  const ovId = 'ov-trade';
+  showOverlay('ov-trade');
   try {
-    showOverlay(ovId);
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.TRADE_BAL, active);
-    const years = buildYearsFromArrays(...Object.values(data));
-    const ds = active.map(r => makeDataset(r, data[r]||[], years));
-    renderChart('chart-trade','ov-trade','leg-trade','lu-trade', ds, years, v=>fmtPct(v,2));
-  } catch(e) { errorOverlay(ovId, 'Laad fout: '+e.message); }
+    const years = buildYears(...Object.values(data));
+    renderChart('chart-trade','ov-trade','leg-trade','lu-trade',
+      active.map(r => makeDS(r, data[r]||[], years)), years, v => fmtPct(v,2));
+  } catch(e) { errorOverlay('ov-trade', e.message); }
 }
 
 async function loadDebt() {
-  const ovId = 'ov-debt';
+  showOverlay('ov-debt');
   try {
-    showOverlay(ovId);
     const active = ALL_REGIONS.filter(r => activeRegions[r]);
     const data = await fetchWBAll(WB.DEBT, active);
-    const years = buildYearsFromArrays(...Object.values(data));
-    const ds = active.map(r => makeDataset(r, data[r]||[], years));
-    renderChart('chart-debt','ov-debt','leg-debt','lu-debt', ds, years, v=>fmtPct(v,1));
-  } catch(e) { errorOverlay(ovId, 'Laad fout: '+e.message); }
+    const years = buildYears(...Object.values(data));
+    renderChart('chart-debt','ov-debt','leg-debt','lu-debt',
+      active.map(r => makeDS(r, data[r]||[], years)), years, v => fmtPct(v,1));
+  } catch(e) { errorOverlay('ov-debt', e.message); }
 }
 
 // ═══════════════════════════════════════════════════
-//  SIDEBAR & UI
+//  UI EVENTS
 // ═══════════════════════════════════════════════════
 function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('collapsed');
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
 }
-
+function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function scrollToSection(id) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
-
 function toggleRegion(r) {
   activeRegions[r] = !activeRegions[r];
-  document.querySelector(`.badge[data-region="${r}"]`).classList.toggle('inactive', !activeRegions[r]);
+  document.querySelector(`.region-btn[data-region="${r}"]`).classList.toggle('inactive', !activeRegions[r]);
   loadAll();
 }
-
 function onRangeChange() {
   yearRange = parseInt(document.getElementById('yearRange').value);
   loadAll();
@@ -1188,29 +877,17 @@ function onRangeChange() {
 async function loadAll() {
   const btn = document.getElementById('refreshBtn');
   btn.classList.add('loading');
-  btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:1.5px;"></span> Laden...';
-
-  try {
-    await Promise.allSettled([
-      loadGdpNom(),
-      loadGdpCap(),
-      loadGdpGrowth(),
-      loadCpi(),
-      loadRate(),
-      loadUnemp(),
-      loadConf(),
-      loadTrade(),
-      loadDebt(),
-    ]);
-  } finally {
-    btn.classList.remove('loading');
-    btn.innerHTML = '<span>⟳</span> Vernieuwen';
-  }
+  btn.textContent = '⟳ Laden...';
+  await Promise.allSettled([
+    loadGdpNom(), loadGdpCap(), loadGdpGrowth(),
+    loadCpi(), loadRate(),
+    loadUnemp(), loadConf(),
+    loadTrade(), loadDebt(),
+  ]);
+  btn.classList.remove('loading');
+  btn.textContent = '⟳ Vernieuwen';
 }
 
-// ═══════════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', loadAll);
 </script>
 </body>
