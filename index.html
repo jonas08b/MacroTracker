@@ -426,7 +426,7 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
     <h1>Macro-economisch Dashboard</h1>
     <div class="meta-row">
       <div class="meta-pill">Bron <b>World Bank</b></div>
-      <div class="meta-pill">Proxy <b id="meta-proxy">macro-tracker.vercel.app</b></div>
+      <div class="meta-pill">Proxy <b id="meta-proxy">laden...</b></div>
     </div>
   </div>
 
@@ -770,7 +770,13 @@ const WB = {
   CONS_EXP:   'NE.CON.PRVT.KD.ZG',
 };
 
-const PROXY_BASE = 'https://macro-tracker.vercel.app';
+// Proxy: gebruik dezelfde origin als de pagina zelf, dan de bekende URL's als fallback
+const PROXY_BASE = (() => {
+  const origin = window.location.origin;
+  // Als we op vercel draaien, gebruik onze eigen /api route
+  if (origin.includes('vercel.app') || origin.includes('localhost')) return origin;
+  return 'https://macro-tracker-roan.vercel.app';
+})();
 
 let charts = {};
 let yearRange = 10;
@@ -856,26 +862,44 @@ async function fetchWBOne(indicator, isoCode, startYr, endYr) {
   const cacheKey = `${indicator}_${isoCode}_${startYr}_${endYr}`;
   if (fetchCache.has(cacheKey)) return fetchCache.get(cacheKey);
 
-  const url = `${PROXY_BASE}/api/wb?country=${isoCode}&indicator=${indicator}&start=${startYr}&end=${endYr}`;
-  const ctrl = new AbortController();
-  const timeout = setTimeout(() => ctrl.abort(), 15000); // 15s timeout
+  // Probeer eerst via proxy, val terug op directe WB API bij 404/netwerk fout
+  const proxyUrl = `${PROXY_BASE}/api/wb?country=${isoCode}&indicator=${indicator}&start=${startYr}&end=${endYr}`;
+  const directUrl = `https://api.worldbank.org/v2/country/${isoCode}/indicator/${indicator}?format=json&date=${startYr}:${endYr}&per_page=100`;
 
-  try {
-    const res = await fetch(url, { signal: ctrl.signal });
-    clearTimeout(timeout);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    if (!json || !json[1]) return [];
-    const data = json[1]
-      .filter(r => r.value != null)
-      .map(r => ({ year: parseInt(r.date), value: parseFloat(r.value) }))
-      .sort((a, b) => a.year - b.year);
-    fetchCache.set(cacheKey, data);
-    return data;
-  } catch (e) {
-    clearTimeout(timeout);
-    throw e.name === 'AbortError' ? new Error('Timeout na 15s') : e;
+  async function doFetch(url) {
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 15000);
+    try {
+      const res = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch(e) {
+      clearTimeout(timeout);
+      throw e.name === 'AbortError' ? new Error('Timeout na 15s') : e;
+    }
   }
+
+  let json;
+  try {
+    json = await doFetch(proxyUrl);
+  } catch(proxyErr) {
+    // Proxy faalde (404, netwerk, etc.) → probeer World Bank direct
+    console.info(`Proxy fout (${proxyErr.message}), directe WB API...`);
+    try {
+      json = await doFetch(directUrl);
+    } catch(directErr) {
+      throw new Error(`Proxy: ${proxyErr.message} | Direct: ${directErr.message}`);
+    }
+  }
+
+  if (!json || !json[1]) return [];
+  const data = json[1]
+    .filter(r => r.value != null)
+    .map(r => ({ year: parseInt(r.date), value: parseFloat(r.value) }))
+    .sort((a, b) => a.year - b.year);
+  fetchCache.set(cacheKey, data);
+  return data;
 }
 
 async function fetchWBAll(indicator, regions) {
@@ -1286,7 +1310,11 @@ async function loadAll() {
   btn.textContent = '⟳ Vernieuwen';
 }
 
-document.addEventListener('DOMContentLoaded', loadAll);
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('meta-proxy');
+  if (el) el.textContent = new URL(PROXY_BASE).hostname;
+  loadAll();
+});
 </script>
 </body>
 </html>
